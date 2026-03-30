@@ -60,6 +60,9 @@ class MainWindow(QMainWindow) :
         naissance = self.widget_creer_chercheur_dateEdit_naissance.dateTime()
         print(nom,prenom,sexe,email,telephone,userName,mdp,confirmationMdp,specialite,recherche,grade,naissance)
 
+    def supprimer_chercheur(self):
+        pass
+
 window = MainWindow("IETR")
 window.show()
 app.exec()
