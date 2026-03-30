@@ -119,7 +119,7 @@
         <number>3</number>
        </property>
        <widget class="QWidget" name="widget_home">
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="label_home">
          <property name="geometry">
           <rect>
            <x>80</x>
@@ -136,12 +136,15 @@
           </font>
          </property>
          <property name="text">
-          <string>Bienvenue sur l'espace de</string>
+          <string>Bienvenue sur l'espace de l'</string>
          </property>
         </widget>
        </widget>
        <widget class="QWidget" name="widget_equipes">
         <widget class="QPushButton" name="widget_equipes_btn_creer_chercheur">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>514</x>
@@ -220,7 +223,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit"/>
+             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_nom"/>
             </item>
            </layout>
           </item>
@@ -234,7 +237,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit_2"/>
+             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_prenom"/>
             </item>
            </layout>
           </item>
@@ -248,21 +251,36 @@
              </widget>
             </item>
             <item>
-             <widget class="QDateEdit" name="dateEdit"/>
+             <widget class="QDateEdit" name="widget_creer_chercheur_dateEdit_naissance"/>
             </item>
            </layout>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Sexe :</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_7"/>
+             <layout class="QHBoxLayout" name="horizontalLayout_15">
+              <item>
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Sexe :</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="widget_creer_chercheur_comboBox_sexe">
+                <item>
+                 <property name="text">
+                  <string>Homme</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Femme</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
@@ -276,7 +294,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit_5"/>
+             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_email"/>
             </item>
            </layout>
           </item>
@@ -290,7 +308,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit_6"/>
+             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_telephone"/>
             </item>
            </layout>
           </item>
@@ -304,7 +322,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit_3"/>
+             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_nom_utilisateur"/>
             </item>
            </layout>
           </item>
@@ -318,7 +336,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit_4"/>
+             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_mdp"/>
             </item>
            </layout>
           </item>
@@ -346,7 +364,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="comboBox">
+               <widget class="QComboBox" name="widget_creer_chercheur_comboBox_grade">
                 <item>
                  <property name="text">
                   <string>Chercheur permanent</string>
@@ -383,7 +401,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit_8"/>
+             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_specialite"/>
             </item>
            </layout>
           </item>
@@ -397,7 +415,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit_9"/>
+             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_recherche"/>
             </item>
            </layout>
           </item>
