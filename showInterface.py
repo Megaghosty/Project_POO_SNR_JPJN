@@ -17,22 +17,32 @@ class MainWindow(QMainWindow) :
         # Initialisation des boutons
         self.btn_equipes.clicked.connect(self.afficher_equipe)
         self.btn_publications.clicked.connect(self.afficher_publications)
-        self.widget_equipes_btn_creer_chercheur.clicked.connect(self.afficher_creer_chercheur)
-        self.widget_equipes_btn_ajout_chercheur.clicked.connect(self.afficher_ajout_chercheur)
+        self.btn_personnel.clicked.connect(self.afficher_personnel)
+        self.widget_equipes_btn_ajouter_chercheur.clicked.connect(self.afficher_ajouter_chercheur)
+        self.widget_equipes_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur_equipe)
+        self.widget_personnel_btn_creer_chercheur.clicked.connect(self.afficher_creer_chercheur)
+        self.widget_personnel_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur)
         self.widget_creer_chercheur_btn_creer.clicked.connect(self.creer_chercheur)
 
         # Page d'affichage
         self.stackedWidget.setCurrentWidget(self.widget_home)
 
     # Méthodes d'affichage
+    def afficher_personnel(self):
+        self.stackedWidget.setCurrentWidget(self.widget_personnel)
     def afficher_equipe(self):
         self.stackedWidget.setCurrentWidget(self.widget_equipes)
     def afficher_publications(self):
         self.stackedWidget.setCurrentWidget(self.widget_publications)
     def afficher_creer_chercheur(self):
         self.stackedWidget.setCurrentWidget(self.widget_creer_chercheur)
-    def afficher_ajout_chercheur(self):
-        self.stackedWidget.setCurrentWidget(self.widget_ajouter_chercheur)
+    def afficher_supprimer_chercheur(self):
+        #self.stackedWidget.setCurrentWidget(self.widget_supprimer_chercheur)
+        pass
+    def afficher_ajouter_chercheur(self):
+        pass
+    def afficher_supprimer_chercheur_equipe(self):
+        pass
 
     # Méthodes gestion BDD
     def creer_chercheur(self):
@@ -43,11 +53,12 @@ class MainWindow(QMainWindow) :
         telephone = self.widget_creer_chercheur_lineEdit_telephone.text()
         userName = self.widget_creer_chercheur_lineEdit_nom_utilisateur.text()
         mdp = self.widget_creer_chercheur_lineEdit_mdp.text()
+        confirmationMdp = self.widget_creer_chercheur_lineEdit_confirmation_mdp.text()
         specialite = self.widget_creer_chercheur_lineEdit_specialite.text()
         recherche = self.widget_creer_chercheur_lineEdit_recherche.text()
         grade = self.widget_creer_chercheur_comboBox_grade.currentText()
         naissance = self.widget_creer_chercheur_dateEdit_naissance.dateTime()
-        print(nom,prenom,sexe,email,telephone,userName,mdp,specialite,recherche,grade,naissance)
+        print(nom,prenom,sexe,email,telephone,userName,mdp,confirmationMdp,specialite,recherche,grade,naissance)
 
 window = MainWindow("IETR")
 window.show()
