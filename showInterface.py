@@ -4,8 +4,8 @@ import bcrypt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QHeaderView
 from PyQt6 import uic
 
-# Importation de la fonction depuis votre nouveau fichier database.py
-from database import connecter_bdd
+
+from connexion_bdd import connecter_bdd
 
 app = QApplication(sys.argv)
 
