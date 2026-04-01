@@ -38,11 +38,15 @@ class MainWindow(QMainWindow):
         self.widget_personnel_btn_creer_chercheur.clicked.connect(self.afficher_creer_chercheur)
         self.widget_personnel_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur)
         self.widget_creer_chercheur_btn_creer.clicked.connect(self.creer_chercheur)
+        self.btn_connection.clicked.connect(self.afficher_connection)
 
         # Page d'affichage par défaut
         self.stackedWidget.setCurrentWidget(self.widget_home)
 
     # Méthodes d'affichage
+    def afficher_connection(self):
+        self.stackedWidget.setCurrentWidget(self.widget_connection)
+
     def afficher_personnel(self):
         self.stackedWidget.setCurrentWidget(self.widget_personnel)
         
