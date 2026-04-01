@@ -81,8 +81,17 @@ class MainWindow(QMainWindow):
         
     def afficher_creer_chercheur(self):
         self.stackedWidget.setCurrentWidget(self.widget_creer_chercheur)
+        
+    def afficher_supprimer_chercheur(self):
+        pass
+        
+    def afficher_ajouter_chercheur(self):
+        pass
+        
+    def afficher_supprimer_chercheur_equipe(self):
+        pass
 
-    # --- GESTION BDD ---
+    # Méthodes gestion BDD
     def creer_chercheur(self):
         nom = self.widget_creer_chercheur_lineEdit_nom.text()
         prenom = self.widget_creer_chercheur_lineEdit_prenom.text()
