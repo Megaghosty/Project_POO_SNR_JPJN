@@ -121,15 +121,22 @@
       </layout>
      </item>
      <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="widget_home">
         <widget class="QLabel" name="label_home">
          <property name="geometry">
           <rect>
-           <x>80</x>
+           <x>110</x>
            <y>220</y>
            <width>461</width>
            <height>81</height>

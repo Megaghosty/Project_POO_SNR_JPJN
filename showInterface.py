@@ -62,8 +62,13 @@ class MainWindow(QMainWindow) :
         self.stackedWidget.setCurrentWidget(self.widget_publications)
     def afficher_creer_chercheur(self):
         self.stackedWidget.setCurrentWidget(self.widget_creer_chercheur)
-    def afficher_ajout_chercheur(self):
-        self.stackedWidget.setCurrentWidget(self.widget_ajouter_chercheur)
+    def afficher_supprimer_chercheur(self):
+        #self.stackedWidget.setCurrentWidget(self.widget_supprimer_chercheur)
+        pass
+    def afficher_ajouter_chercheur(self):
+        pass
+    def afficher_supprimer_chercheur_equipe(self):
+        pass
 
     # Méthodes gestion BDD
     def creer_chercheur(self):
@@ -78,8 +83,67 @@ class MainWindow(QMainWindow) :
         specialite = self.widget_creer_chercheur_lineEdit_specialite.text()
         recherche = self.widget_creer_chercheur_lineEdit_recherche.text()
         grade = self.widget_creer_chercheur_comboBox_grade.currentText()
+        
+        naissance_qt = self.widget_creer_chercheur_dateEdit_naissance.dateTime()
+        naissance_sql = naissance_qt.toString("yyyy-MM-dd")
+
+        if not nom or not prenom or not userName or not mdp:
+            print("⚠️ Erreur : Veuillez remplir les champs obligatoires (Nom, Prénom, Utilisateur, Mot de passe).")
+            return
+
+        est_permanent = 1
+        type_role = "Permanent"
+        if "Stagiaire" in grade or "Doctorant" in grade or "Assistant" in grade:
+            est_permanent = 0
+            type_role = "Non-Permanent"
+
+        connection = connecter_bdd()
+
+        if connection is None:
+            print("❌ Erreur : Impossible de se connecter à la base de données.")
+            return 
+
+        cursor = None
+        try:
+            cursor = connection.cursor()
+
+            salt = bcrypt.gensalt()
+            mdp_hashe = bcrypt.hashpw(mdp.encode('utf-8'), salt).decode('utf-8')
+
+            sql = """
+                INSERT INTO chercheur 
+                (nom, prenom, sexe, email, telephone, user, pw, specialite, axe_recherche, grade, date_naissance, type_role, est_permanent, Equipe_idEquipe) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            valeurs = (nom, prenom, sexe, email, telephone, userName, mdp_hashe, specialite, recherche, grade, naissance_sql, type_role, est_permanent, None)
+
+            cursor.execute(sql, valeurs)
+            connection.commit()
+
+            print(f"✅ Succès : Le chercheur {prenom} {nom} a été ajouté avec succès !")
+
+            self.widget_creer_chercheur_lineEdit_nom.clear()
+            self.widget_creer_chercheur_lineEdit_prenom.clear()
+            self.widget_creer_chercheur_lineEdit_email.clear()
+            self.widget_creer_chercheur_lineEdit_telephone.clear()
+            self.widget_creer_chercheur_lineEdit_nom_utilisateur.clear()
+            self.widget_creer_chercheur_lineEdit_mdp.clear()
+            self.widget_creer_chercheur_lineEdit_specialite.clear()
+            self.widget_creer_chercheur_lineEdit_recherche.clear()
+            self.widget_creer_chercheur_comboBox_sexe.setCurrentIndex(0)
+            self.widget_creer_chercheur_comboBox_grade.setCurrentIndex(0)
+
+        except Error as e:
+            connection.rollback()
+            print(f"❌ Erreur SQL : Une erreur est survenue lors de l'insertion :\n{e}")
+
+        finally:
+            if cursor: cursor.close()
+            if connection and connection.is_connected(): connection.close()
+
+
         naissance = self.widget_creer_chercheur_dateEdit_naissance.dateTime()
-        print(nom,prenom,sexe,email,telephone,userName,mdp,specialite,recherche,grade,naissance)
+        print(nom,prenom,sexe,email,telephone,userName,mdp,confirmationMdp,specialite,recherche,grade,naissance)
 
 window = MainWindow("IETR")
 window.show()
