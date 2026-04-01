@@ -58,6 +58,13 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
+            <widget class="QPushButton" name="btn_personnel">
+             <property name="text">
+              <string>Personnel</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="btn_equipes">
              <property name="text">
               <string>Equipes</string>
@@ -116,7 +123,7 @@
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>3</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="widget_home">
         <widget class="QLabel" name="label_home">
@@ -140,14 +147,57 @@
          </property>
         </widget>
        </widget>
-       <widget class="QWidget" name="widget_equipes">
-        <widget class="QPushButton" name="widget_equipes_btn_creer_chercheur">
+       <widget class="QWidget" name="widget_personnel">
+        <widget class="QLabel" name="widget_equipes_label_3">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>0</y>
+           <width>141</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Personnel</string>
+         </property>
+        </widget>
+        <widget class="QTableWidget" name="tableWidget_equipes_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>60</y>
+           <width>621</width>
+           <height>451</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_personnel_btn_supprimer_chercheur">
+         <property name="geometry">
+          <rect>
+           <x>396</x>
+           <y>520</y>
+           <width>111</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Supprimer chercheur</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_personnel_btn_creer_chercheur">
          <property name="enabled">
           <bool>true</bool>
          </property>
          <property name="geometry">
           <rect>
-           <x>514</x>
+           <x>510</x>
            <y>520</y>
            <width>111</width>
            <height>23</height>
@@ -157,19 +207,8 @@
           <string>Créer chercheur</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="widget_equipes_btn_ajout_chercheur">
-         <property name="geometry">
-          <rect>
-           <x>394</x>
-           <y>520</y>
-           <width>111</width>
-           <height>23</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Ajouter chercheur</string>
-         </property>
-        </widget>
+       </widget>
+       <widget class="QWidget" name="widget_equipes">
         <widget class="QTableWidget" name="tableWidget_equipes">
          <property name="geometry">
           <rect>
@@ -198,6 +237,35 @@
          </property>
          <property name="text">
           <string>Equipes</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_equipes_btn_ajouter_chercheur">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="geometry">
+          <rect>
+           <x>510</x>
+           <y>520</y>
+           <width>111</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Ajouter chercheur</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_equipes_btn_supprimer_chercheur">
+         <property name="geometry">
+          <rect>
+           <x>396</x>
+           <y>520</y>
+           <width>111</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Supprimer chercheur</string>
          </property>
         </widget>
        </widget>
@@ -329,14 +397,11 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
-             <widget class="QLabel" name="label_6">
+             <widget class="QLabel" name="label_16">
               <property name="text">
-               <string>Mot de passe :</string>
+               <string/>
               </property>
              </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_mdp"/>
             </item>
            </layout>
           </item>
@@ -420,19 +485,73 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_17"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_17">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_16"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_16">
+            <item>
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_18"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_18">
+            <item>
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_19"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_19">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_20">
+              <item>
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>Mot de passe :</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_mdp"/>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_14"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_14">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_21">
+              <item>
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>Confirmation :</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="widget_creer_chercheur_lineEdit_confirmation_mdp"/>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
