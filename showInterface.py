@@ -63,7 +63,31 @@ class MainWindow(QMainWindow):
         pass
         
     def afficher_ajouter_chercheur(self):
-        pass
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        cursor = None
+        try:
+            cursor = connection.cursor()
+            sql = """SELECT * FROM equipe"""
+
+            data = cursor.execute(sql)
+            connection.commit()
+
+            print(data)
+
+            # Nettoyage de l'interface
+            self.nettoyer_formulaire()
+
+        except sqlite3.Error as e:
+            if connection:
+                connection.rollback()
+            print(f"❌ Erreur SQLite : {e}")
+
+        finally:
+            if connection:
+                connection.close()
         
     def afficher_supprimer_chercheur_equipe(self):
         pass
