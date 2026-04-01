@@ -4,7 +4,7 @@ import bcrypt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QHeaderView
 from PyQt6 import uic
 
-# IMPORTATION DE VOTRE NOUVEAU FICHIER
+# Importation de la fonction depuis votre nouveau fichier database.py
 from database import connecter_bdd
 
 app = QApplication(sys.argv)
@@ -14,65 +14,33 @@ class MainWindow(QMainWindow):
         super().__init__()
         uic.loadUi("Interface.ui", self)
     
+        # Affichage nom du Labo
         self.label_labo.setText(nomLabo)
         self.label_home.setText(self.label_home.text() + nomLabo)
         self.setWindowTitle("Gestion " + nomLabo)
 
-        # Connexion des boutons
+        # Initialisation des boutons
         self.btn_equipes.clicked.connect(self.afficher_equipe)
         self.btn_publications.clicked.connect(self.afficher_publications)
         self.btn_personnel.clicked.connect(self.afficher_personnel)
+        self.widget_equipes_btn_ajouter_chercheur.clicked.connect(self.afficher_ajouter_chercheur)
+        self.widget_equipes_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur_equipe)
         self.widget_personnel_btn_creer_chercheur.clicked.connect(self.afficher_creer_chercheur)
+        self.widget_personnel_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur)
         self.widget_creer_chercheur_btn_creer.clicked.connect(self.creer_chercheur)
         self.btn_connection.clicked.connect(self.afficher_connection)
 
+        # Page d'affichage par défaut
         self.stackedWidget.setCurrentWidget(self.widget_home)
-
-
-    # --- NOUVELLE MÉTHODE POUR AFFICHER LE PERSONNEL ---
 
     # Méthodes d'affichage
     def afficher_connection(self):
         self.stackedWidget.setCurrentWidget(self.widget_connection)
 
-
     def afficher_personnel(self):
         self.stackedWidget.setCurrentWidget(self.widget_personnel)
         
-        connection = connecter_bdd()
-        if connection is None: return
-
-        try:
-            cursor = connection.cursor()
-            query = """
-                SELECT nom, prenom, sexe, email, telephone, user, specialite, grade, date_naissance 
-                FROM chercheur
-            """
-            cursor.execute(query)
-            chercheurs = cursor.fetchall()
-
-            # Vérification du widget tableau
-            if hasattr(self, 'tableWidget_personnel'):
-                self.tableWidget_personnel.setRowCount(0)
                 
-                # Configuration automatique des colonnes si besoin
-                self.tableWidget_personnel.setColumnCount(9)
-                self.tableWidget_personnel.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-
-                for row_idx, row_data in enumerate(chercheurs):
-                    self.tableWidget_personnel.insertRow(row_idx)
-                    for col_idx, value in enumerate(row_data):
-                        item = QTableWidgetItem(str(value) if value is not None else "")
-                        self.tableWidget_personnel.setItem(row_idx, col_idx, item)
-            
-            print(f"✅ {len(chercheurs)} chercheurs chargés dans l'interface.")
-
-        except sqlite3.Error as e:
-            print(f"❌ Erreur lors du chargement : {e}")
-        finally:
-            if connection: connection.close()
-
-    # --- MÉTHODES D'AFFICHAGE ---
     def afficher_equipe(self):
         self.stackedWidget.setCurrentWidget(self.widget_equipes)
 
@@ -86,7 +54,23 @@ class MainWindow(QMainWindow):
         pass
         
     def afficher_ajouter_chercheur(self):
-        pass
+        # Cette méthode semble être un test pour récupérer les équipes
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM equipe")
+            equipes = cursor.fetchall()
+            for eq in equipes:
+                print(dict(eq)) # Affiche chaque équipe sous forme de dictionnaire
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
         
     def afficher_supprimer_chercheur_equipe(self):
         pass
@@ -123,7 +107,8 @@ class MainWindow(QMainWindow):
             type_role = "Non-Permanent"
 
         connection = connecter_bdd()
-        if connection is None: return 
+        if connection is None:
+            return 
 
         try:
             cursor = connection.cursor()
@@ -143,10 +128,12 @@ class MainWindow(QMainWindow):
             self.nettoyer_formulaire()
 
         except sqlite3.Error as e:
-            if connection: connection.rollback()
+            if connection:
+                connection.rollback()
             print(f"❌ Erreur SQLite : {e}")
         finally:
-            if connection: connection.close()
+            if connection:
+                connection.close()
 
     def nettoyer_formulaire(self):
         self.widget_creer_chercheur_lineEdit_nom.clear()
