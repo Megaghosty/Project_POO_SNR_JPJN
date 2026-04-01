@@ -58,6 +58,7 @@ class MainWindow(QMainWindow) :
         self.stackedWidget.setCurrentWidget(self.widget_personnel)
     def afficher_equipe(self):
         self.stackedWidget.setCurrentWidget(self.widget_equipes)
+
     def afficher_publications(self):
         self.stackedWidget.setCurrentWidget(self.widget_publications)
     def afficher_creer_chercheur(self):
@@ -149,3 +150,5 @@ window = MainWindow("IETR")
 window.show()
 app.exec()
 sys.exit()
+
+#SELECT * FROM equipe WHERE idEquipe = 0
