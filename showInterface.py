@@ -15,7 +15,9 @@ class MainWindow(QMainWindow):
     def __init__(self, nomLabo):
         super().__init__()
         uic.loadUi("Interface.ui", self)
-    
+
+        #Cookie de session (stocke les infos de l'utilisateur connecté)
+        self.utilisateur_connecte = None
         # Affichage nom du Labo
         self.label_labo.setText(nomLabo)
         self.label_home.setText(self.label_home.text() + nomLabo)
@@ -54,21 +56,31 @@ class MainWindow(QMainWindow):
 
         try:
             cursor = connection.cursor()
-            cursor.execute("SELECT pw FROM chercheur WHERE user = ?", (username,))
+            # On récupère plus d'infos utiles (id, nom, prenom, role) en plus du mot de passe
+            query = "SELECT idChercheur, nom, prenom, type_role, pw FROM chercheur WHERE user = ?"
+            cursor.execute(query, (username,))
             result = cursor.fetchone()
 
             if result:
-                # On récupère le hash proprement avec le nom de la colonne
                 hash_stocke = result['pw']
                 
-                # Vérification du mot de passe
                 if bcrypt.checkpw(password.encode('utf-8'), hash_stocke.encode('utf-8')):
-                    print("✅ Connexion réussie !")
                     
-                    # On change de page vers l'accueil
+                    # 🍪 CRÉATION DU "COOKIE" DE SESSION
+                    self.utilisateur_connecte = {
+                        "id": result['idChercheur'],
+                        "nom": result['nom'],
+                        "prenom": result['prenom'],
+                        "role": result['type_role']
+                    }
+                    
+                    print(f"✅ Connexion réussie ! Bienvenue {self.utilisateur_connecte['prenom']}.")
+                    print(f"   - ID : {self.utilisateur_connecte['id']}")
+                    
+                    # Optionnel : Afficher le nom de l'utilisateur sur la page d'accueil
+                    # self.label_nom_utilisateur.setText(f"Bonjour {self.utilisateur_connecte['prenom']}")
+
                     self.stackedWidget.setCurrentWidget(self.widget_home)
-                    
-                    # On vide les champs pour des raisons de sécurité
                     self.widget_connection_lineEdit_nom.clear()
                     self.widget_connection_lineEdit_mdp.clear()
                 else:
@@ -81,7 +93,6 @@ class MainWindow(QMainWindow):
         finally:
             if connection:
                 connection.close()
-
 
     def afficher_personnel(self):
         self.stackedWidget.setCurrentWidget(self.widget_personnel)
