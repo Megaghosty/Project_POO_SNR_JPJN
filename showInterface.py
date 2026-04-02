@@ -1,9 +1,10 @@
 import sys
 import sqlite3
 import bcrypt
+import datetime as dt
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6 import uic
-from PyQt6.QtCore import QStandardItemModel
+from connexion_bdd import connecter_bdd
 
 # Configuration de l'application
 app = QApplication(sys.argv)
@@ -22,11 +23,13 @@ class MainWindow(QMainWindow):
         self.btn_equipes.clicked.connect(self.afficher_equipe)
         self.btn_publications.clicked.connect(self.afficher_publications)
         self.btn_personnel.clicked.connect(self.afficher_personnel)
+        self.widget_equipes_btn_creer_equipe.clicked.connect(self.afficher_creer_equipe)
         self.widget_equipes_btn_ajouter_chercheur.clicked.connect(self.afficher_ajouter_chercheur)
         self.widget_equipes_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur_equipe)
         self.widget_personnel_btn_creer_chercheur.clicked.connect(self.afficher_creer_chercheur)
         self.widget_personnel_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur)
         self.widget_creer_chercheur_btn_creer.clicked.connect(self.creer_chercheur)
+        self.widget_creer_equipes_btn_creer_equipe.clicked.connect(self.creer_equipe)
         self.btn_connection.clicked.connect(self.afficher_connection)
 
         # Page d'affichage par défaut
@@ -37,11 +40,59 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentWidget(self.widget_connection)
 
     def afficher_personnel(self):
-        self.stackedWidget.setCurrentWidget(self.widget_personnel)
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            
+            self.widget_personnel_listWidget_personnel.clear()
+
+            sql = """SELECT * FROM chercheur"""
+
+            cursor.execute(sql)
+            data = cursor.fetchall()
+            for i in range(len(data)):
+                d = dict(data[i])
+                self.widget_personnel_listWidget_personnel.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade']))
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+
+        finally:
+            if connection:
+                connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_personnel)
         
+    def afficher_creer_equipe(self):
+        self.stackedWidget.setCurrentWidget(self.widget_creer_equipe)
                 
     def afficher_equipe(self):
-        self.stackedWidget.setCurrentWidget(self.widget_equipes)
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            
+            self.widget_equipes_listWidget_equipes.clear()
+
+            sql = """SELECT * FROM equipe"""
+
+            cursor.execute(sql)
+            data = cursor.fetchall()
+            for i in range(len(data)):
+                d = dict(data[i])
+                self.widget_equipes_listWidget_equipes.addItem(str(d['nom_eq'])+" | "+ str(d['abreviation_eq']))
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+
+        finally:
+            if connection:
+                connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_equipes)
 
     def afficher_publications(self):
         self.stackedWidget.setCurrentWidget(self.widget_publications)
@@ -53,7 +104,6 @@ class MainWindow(QMainWindow):
         pass
         
     def afficher_ajouter_chercheur(self):
-        # Cette méthode semble être un test pour récupérer les équipes
         connection = connecter_bdd()
         if connection is None:
             return 
@@ -61,15 +111,24 @@ class MainWindow(QMainWindow):
         try:
             cursor = connection.cursor()
 
+            self.widget_ajouter_chercheur_listWidget_equipe.clear()
+            self.widget_ajouter_chercheur_listWidget_chercheur.clear()
+
             sql = """SELECT * FROM equipe"""
 
             cursor.execute(sql)
             data = cursor.fetchall()
             for i in range(len(data)):
-                model =  QStandardItemModel()
                 d = dict(data[i])
-                model.setStringList([d["nom_eq"],d["abreviation_eq"]])
-                self.widget_ajouter_chercheur_listWidget_equipe.setModel(model)
+                self.widget_ajouter_chercheur_listWidget_equipe.addItem(str(d['nom_eq'])+" | "+ str(d['abreviation_eq']))
+            
+            sql = """SELECT * FROM chercheur"""
+
+            cursor.execute(sql)
+            data = cursor.fetchall()
+            for i in range(len(data)):
+                d = dict(data[i])
+                self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade']))
 
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
@@ -153,6 +212,46 @@ class MainWindow(QMainWindow):
         self.widget_creer_chercheur_lineEdit_recherche.clear()
         self.widget_creer_chercheur_comboBox_sexe.setCurrentIndex(0)
         self.widget_creer_chercheur_comboBox_grade.setCurrentIndex(0)
+
+        self.widget_creer_equipes_lineEdit_nom.clear()
+        self.widget_creer_equipes_lineEdit_abreviation.clear()
+        self.widget_creer_equipes_lineEdit_axe.clear()
+        self.widget_creer_equipes_textEdit_description.clear()
+
+    def creer_equipe(self):
+        nom = self.widget_creer_equipes_lineEdit_nom.text()
+        abreviation = self.widget_creer_equipes_lineEdit_abreviation.text()
+        axe = self.widget_creer_equipes_lineEdit_axe.text()
+        description = self.widget_creer_equipes_textEdit_description.toPlainText()
+        date = dt.datetime.now()
+        print(date)
+
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+
+            sql = """
+                INSERT INTO equipe 
+                (nom_eq, abreviation_eq, axe_recherche_eq, description_eq, date_creation_eq) 
+                VALUES (?, ?, ?, ?, ?)
+            """
+            valeurs = (nom, abreviation,axe,description,date)
+
+            cursor.execute(sql, valeurs)
+            connection.commit()
+            self.nettoyer_formulaire()
+
+        except sqlite3.Error as e:
+            if connection:
+                connection.rollback()
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
+
 
 if __name__ == "__main__":
     window = MainWindow("IETR")
