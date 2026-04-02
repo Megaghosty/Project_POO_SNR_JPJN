@@ -1,70 +1,57 @@
-import mysql.connector
+import sqlite3
 import bcrypt
-from mysql.connector import Error
+from connexion_bdd import connecter_bdd 
 
-connection = None
-cursor = None
+def injecter_admin():
+    connection = connecter_bdd()
+    if connection is None:
+        return
 
-try:
-    connection = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='',
-        database='mydb'
-    )
-
-    if connection.is_connected():
+    try:
         cursor = connection.cursor()
-
-        # --- TEST AVEC MOT DE PASSE BIDON ---
-        mdp_clair = "password123" 
-        salt = bcrypt.gensalt()
-        mdp_hashe = bcrypt.hashpw(mdp_clair.encode('utf-8'), salt)
         
-        # Affichage pour ton information
-        print(f"Le mot de passe '{mdp_clair}' sera stocké comme : {mdp_hashe.decode('utf-8')}")
+        mot_de_passe_clair = "admin123" 
+        
+        salt = bcrypt.gensalt()
+        mdp_hashe = bcrypt.hashpw(mot_de_passe_clair.encode('utf-8'), salt).decode('utf-8')
 
-        # 1. Laboratoire
-        sql_lab = "INSERT INTO Laboratoire (nom_complet, abreviation) VALUES (%s, %s)"
-        cursor.execute(sql_lab, ("Laboratoire de Test", "LAB-TEST"))
-        id_labo = cursor.lastrowid
+        # Ajout de idChercheur au début de la requête
+        sql = """
+            INSERT INTO chercheur 
+            (idChercheur, nom, prenom, user, pw, type_role, est_permanent, email, sexe, telephone, specialite, grade, date_naissance) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        
+        # Ajout du 0 en première position
+        valeurs = (
+            0,                     # 👉 idChercheur forcé à 0
+            "Système",             # nom
+            "Admin",               # prenom
+            "admin",               # user 
+            mdp_hashe,             # pw
+            "Administrateur",      # type_role
+            1,                     # est_permanent
+            "admin@admin.com",     # email
+            "Autre",               # sexe
+            "0000000000",          # telephone
+            "Administration",      # specialite
+            "Super-Admin",         # grade
+            "2000-01-01"           # date_naissance
+        )
 
-        # 2. Equipe
-        sql_eq = "INSERT INTO Equipe (nom, abreviation, id_labo) VALUES (%s, %s, %s)"
-        cursor.execute(sql_eq, ("Equipe Alpha", "ALPHA", id_labo))
-        id_equipe = cursor.lastrowid
-
-        # 3. Chercheur (avec le hash)
-        sql_ch = """INSERT INTO Chercheur (nom, prenom, login, mdp_hash, id_equipe) 
-                    VALUES (%s, %s, %s, %s, %s)"""
-        cursor.execute(sql_ch, ("Doe", "John", "test_user", mdp_hashe.decode('utf-8'), id_equipe))
-        id_chercheur = cursor.lastrowid
-
-        # 4. Chercheur Permanent
-        sql_perm = "INSERT INTO Chercheur_Permanent (id_chercheur, grade) VALUES (%s, %s)"
-        cursor.execute(sql_perm, (id_chercheur, "Stagiaire"))
-
-        # 5. Publication
-        sql_pub = "INSERT INTO Publication (titre, date_publication) VALUES (%s, %s)"
-        cursor.execute(sql_pub, ("Ma premiere publication", "2024-05-20"))
-        id_publi = cursor.lastrowid
-
-        # 6. Association Auteur/Publication
-        sql_assoc = "INSERT INTO Auteur_Publication (id_chercheur, id_publi) VALUES (%s, %s)"
-        cursor.execute(sql_assoc, (id_chercheur, id_publi))
-
+        cursor.execute(sql, valeurs)
         connection.commit()
-        print("\nInsertion réussie !")
-        print(f"Login : test_user")
-        print(f"MDP   : password123")
+        
+        print("✅ Compte administrateur créé avec l'ID 0 !")
+        print(f"👉 Identifiant : admin")
+        print(f"👉 Mot de passe : {mot_de_passe_clair}")
 
-except Error as e:
-    if connection:
-        connection.rollback()
-    print(f"Erreur SQL : {e}")
+    except sqlite3.IntegrityError:
+        print("⚠️ Un compte avec l'ID 0 (ou le pseudo 'admin') existe peut-être déjà.")
+    except sqlite3.Error as e:
+        print(f"❌ Erreur SQL : {e}")
+    finally:
+        if connection:
+            connection.close()
 
-finally:
-    if cursor:
-        cursor.close()
-    if connection and connection.is_connected():
-        connection.close()
+injecter_admin()
