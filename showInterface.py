@@ -3,7 +3,10 @@ import sqlite3
 import bcrypt
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6 import uic
-from PyQt6.QtCore import QStandardItemModel
+from PyQt6.QtGui import QStandardItemModel
+#from PyQt6.QtCore import QStandardItemModel
+from PyQt6.QtCore import QStringListModel # Attention, celui-ci est bien dans QtCore !
+from connexion_bdd import connecter_bdd
 
 # Configuration de l'application
 app = QApplication(sys.argv)
@@ -28,6 +31,7 @@ class MainWindow(QMainWindow):
         self.widget_personnel_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur)
         self.widget_creer_chercheur_btn_creer.clicked.connect(self.creer_chercheur)
         self.btn_connection.clicked.connect(self.afficher_connection)
+        self.widget_connection_btn_connection.clicked.connect(self.verification_connection)
 
         # Page d'affichage par défaut
         self.stackedWidget.setCurrentWidget(self.widget_home)
@@ -35,6 +39,49 @@ class MainWindow(QMainWindow):
     # Méthodes d'affichage
     def afficher_connection(self):
         self.stackedWidget.setCurrentWidget(self.widget_connection)
+
+    def verification_connection(self):
+        username = self.widget_connection_lineEdit_nom.text()
+        password = self.widget_connection_lineEdit_mdp.text()
+
+        if not username or not password:
+            print("⚠️ Veuillez remplir tous les champs.")
+            return
+
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            cursor.execute("SELECT pw FROM chercheur WHERE user = ?", (username,))
+            result = cursor.fetchone()
+
+            if result:
+                # On récupère le hash proprement avec le nom de la colonne
+                hash_stocke = result['pw']
+                
+                # Vérification du mot de passe
+                if bcrypt.checkpw(password.encode('utf-8'), hash_stocke.encode('utf-8')):
+                    print("✅ Connexion réussie !")
+                    
+                    # On change de page vers l'accueil
+                    self.stackedWidget.setCurrentWidget(self.widget_home)
+                    
+                    # On vide les champs pour des raisons de sécurité
+                    self.widget_connection_lineEdit_nom.clear()
+                    self.widget_connection_lineEdit_mdp.clear()
+                else:
+                    print("❌ Mot de passe incorrect.")
+            else:
+                print("❌ Nom d'utilisateur introuvable.")
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
+
 
     def afficher_personnel(self):
         self.stackedWidget.setCurrentWidget(self.widget_personnel)
