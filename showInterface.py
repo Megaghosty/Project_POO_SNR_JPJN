@@ -13,7 +13,9 @@ class MainWindow(QMainWindow):
     def __init__(self, nomLabo):
         super().__init__()
         uic.loadUi("Interface.ui", self)
-    
+
+        #Cookie de session (stocke les infos de l'utilisateur connecté)
+        self.utilisateur_connecte = None
         # Affichage nom du Labo
         self.label_labo.setText(nomLabo)
         self.label_home.setText(self.label_home.text() + nomLabo)
@@ -31,6 +33,7 @@ class MainWindow(QMainWindow):
         self.widget_creer_chercheur_btn_creer.clicked.connect(self.creer_chercheur)
         self.widget_creer_equipes_btn_creer_equipe.clicked.connect(self.creer_equipe)
         self.btn_connection.clicked.connect(self.afficher_connection)
+        self.widget_connection_btn_connection.clicked.connect(self.verification_connection)
 
         # Page d'affichage par défaut
         self.stackedWidget.setCurrentWidget(self.widget_home)
@@ -38,6 +41,58 @@ class MainWindow(QMainWindow):
     # Méthodes d'affichage
     def afficher_connection(self):
         self.stackedWidget.setCurrentWidget(self.widget_connection)
+
+    def verification_connection(self):
+        username = self.widget_connection_lineEdit_nom.text()
+        password = self.widget_connection_lineEdit_mdp.text()
+
+        if not username or not password:
+            print("⚠️ Veuillez remplir tous les champs.")
+            return
+
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try: 
+            cursor = connection.cursor()
+            # On récupère plus d'infos utiles (id, nom, prenom, role) en plus du mot de passe
+            query = "SELECT idChercheur, nom, prenom, type_role, pw FROM chercheur WHERE user = ?"
+            cursor.execute(query, (username,))
+            result = cursor.fetchone()
+
+            if result:
+                hash_stocke = result['pw']
+                
+                if bcrypt.checkpw(password.encode('utf-8'), hash_stocke.encode('utf-8')):
+                    
+                    # 🍪 CRÉATION DU "COOKIE" DE SESSION
+                    self.utilisateur_connecte = {
+                        "id": result['idChercheur'],
+                        "nom": result['nom'],
+                        "prenom": result['prenom'],
+                        "role": result['type_role']
+                    }
+                    
+                    print(f"✅ Connexion réussie ! Bienvenue {self.utilisateur_connecte['prenom']}.")
+                    print(f"   - ID : {self.utilisateur_connecte['id']}")
+                    
+                    # Optionnel : Afficher le nom de l'utilisateur sur la page d'accueil
+                    # self.label_nom_utilisateur.setText(f"Bonjour {self.utilisateur_connecte['prenom']}")
+
+                    self.stackedWidget.setCurrentWidget(self.widget_home)
+                    self.widget_connection_lineEdit_nom.clear()
+                    self.widget_connection_lineEdit_mdp.clear()
+                else:
+                    print("❌ Mot de passe incorrect.")
+            else:
+                print("❌ Nom d'utilisateur introuvable.")
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
 
     def afficher_personnel(self):
         connection = connecter_bdd()
