@@ -130,7 +130,7 @@
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>7</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="widget_home">
         <widget class="QLabel" name="label_home">
@@ -221,7 +221,7 @@
           </rect>
          </property>
         </widget>
-        <widget class="QPushButton" name="widget_connection_pushButton_connection">
+        <widget class="QPushButton" name="widget_connection_btn_connection">
          <property name="geometry">
           <rect>
            <x>250</x>
@@ -764,7 +764,7 @@
           </rect>
          </property>
         </widget>
-        <widget class="QListWidget" name="widget_ajouter_chercheur_listWidget_personnel_2">
+        <widget class="QListWidget" name="widget_ajouter_chercheur_listWidget_equipe">
          <property name="geometry">
           <rect>
            <x>320</x>

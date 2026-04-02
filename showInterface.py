@@ -1,8 +1,9 @@
 import sys
 import sqlite3
 import bcrypt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6 import uic
+from PyQt6.QtCore import QStandardItemModel
 
 # Configuration de l'application
 app = QApplication(sys.argv)
@@ -70,15 +71,16 @@ class MainWindow(QMainWindow):
         cursor = None
         try:
             cursor = connection.cursor()
+
             sql = """SELECT * FROM equipe"""
 
-            data = cursor.execute(sql)
-            connection.commit()
-
-            print(data)
-
-            # Nettoyage de l'interface
-            self.nettoyer_formulaire()
+            cursor.execute(sql)
+            data = cursor.fetchall()
+            for i in range(len(data)):
+                model =  QStandardItemModel()
+                d = dict(data[i])
+                model.setStringList([d["nom_eq"],d["abreviation_eq"]])
+                self.widget_ajouter_chercheur_listWidget_equipe.setModel(model)
 
         except sqlite3.Error as e:
             if connection:
@@ -88,6 +90,7 @@ class MainWindow(QMainWindow):
         finally:
             if connection:
                 connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_ajouter_chercheur)
         
     def afficher_supprimer_chercheur_equipe(self):
         pass
