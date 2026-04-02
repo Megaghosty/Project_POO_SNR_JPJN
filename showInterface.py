@@ -8,18 +8,6 @@ from PyQt6.QtCore import QStandardItemModel
 # Configuration de l'application
 app = QApplication(sys.argv)
 
-def connecter_bdd():
-    """Établit une connexion avec le fichier SQLite."""
-    try:
-        # Assure-toi que le fichier bdd_converted.db est dans le même dossier
-        connexion = sqlite3.connect('bdd_converted.db')
-        # Permet d'accéder aux colonnes par leur nom : row['nom']
-        connexion.row_factory = sqlite3.Row 
-        return connexion
-    except sqlite3.Error as e:
-        print(f"❌ Erreur de connexion à SQLite : {e}")
-        return None
-
 class MainWindow(QMainWindow):
     def __init__(self, nomLabo):
         super().__init__()
@@ -51,6 +39,7 @@ class MainWindow(QMainWindow):
     def afficher_personnel(self):
         self.stackedWidget.setCurrentWidget(self.widget_personnel)
         
+                
     def afficher_equipe(self):
         self.stackedWidget.setCurrentWidget(self.widget_equipes)
 
@@ -64,11 +53,11 @@ class MainWindow(QMainWindow):
         pass
         
     def afficher_ajouter_chercheur(self):
+        # Cette méthode semble être un test pour récupérer les équipes
         connection = connecter_bdd()
         if connection is None:
             return 
 
-        cursor = None
         try:
             cursor = connection.cursor()
 
@@ -83,10 +72,7 @@ class MainWindow(QMainWindow):
                 self.widget_ajouter_chercheur_listWidget_equipe.setModel(model)
 
         except sqlite3.Error as e:
-            if connection:
-                connection.rollback()
             print(f"❌ Erreur SQLite : {e}")
-
         finally:
             if connection:
                 connection.close()
@@ -97,7 +83,6 @@ class MainWindow(QMainWindow):
 
     # Méthodes gestion BDD
     def creer_chercheur(self):
-        # Récupération des données
         nom = self.widget_creer_chercheur_lineEdit_nom.text()
         prenom = self.widget_creer_chercheur_lineEdit_prenom.text()
         sexe = self.widget_creer_chercheur_comboBox_sexe.currentText()
@@ -110,21 +95,17 @@ class MainWindow(QMainWindow):
         recherche = self.widget_creer_chercheur_lineEdit_recherche.text()
         grade = self.widget_creer_chercheur_comboBox_grade.currentText()
         
-        # Gestion de la date
         naissance_qt = self.widget_creer_chercheur_dateEdit_naissance.dateTime()
         naissance_sql = naissance_qt.toString("yyyy-MM-dd")
 
-        # Vérification des champs obligatoires
         if not nom or not prenom or not userName or not mdp:
             print("⚠️ Erreur : Veuillez remplir les champs obligatoires.")
             return
 
-        # Vérification mot de passe
         if mdp != confirmationMdp:
             print("⚠️ Erreur : Les mots de passe ne correspondent pas.")
             return
 
-        # Détermination du statut
         est_permanent = 1
         type_role = "Permanent"
         if any(x in grade for x in ["Stagiaire", "Doctorant", "Assistant"]):
@@ -135,15 +116,11 @@ class MainWindow(QMainWindow):
         if connection is None:
             return 
 
-        cursor = None
         try:
             cursor = connection.cursor()
-
-            # Hachage sécurisé
             salt = bcrypt.gensalt()
             mdp_hashe = bcrypt.hashpw(mdp.encode('utf-8'), salt).decode('utf-8')
 
-            # Requête SQLite (Note l'utilisation des '?' au lieu de '%s')
             sql = """
                 INSERT INTO chercheur 
                 (nom, prenom, sexe, email, telephone, user, pw, specialite, axe_recherche, grade, date_naissance, type_role, est_permanent, Equipe_idEquipe) 
@@ -153,23 +130,18 @@ class MainWindow(QMainWindow):
 
             cursor.execute(sql, valeurs)
             connection.commit()
-
-            print(f"✅ Succès : {prenom} {nom} a été ajouté à la base SQLite !")
-
-            # Nettoyage de l'interface
+            print(f"✅ Succès : {prenom} {nom} ajouté !")
             self.nettoyer_formulaire()
 
         except sqlite3.Error as e:
             if connection:
                 connection.rollback()
             print(f"❌ Erreur SQLite : {e}")
-
         finally:
             if connection:
                 connection.close()
 
     def nettoyer_formulaire(self):
-        """Réinitialise les champs du formulaire."""
         self.widget_creer_chercheur_lineEdit_nom.clear()
         self.widget_creer_chercheur_lineEdit_prenom.clear()
         self.widget_creer_chercheur_lineEdit_email.clear()
@@ -182,7 +154,6 @@ class MainWindow(QMainWindow):
         self.widget_creer_chercheur_comboBox_sexe.setCurrentIndex(0)
         self.widget_creer_chercheur_comboBox_grade.setCurrentIndex(0)
 
-# Lancement de l'application
 if __name__ == "__main__":
     window = MainWindow("IETR")
     window.show()
