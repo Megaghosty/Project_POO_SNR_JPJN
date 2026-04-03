@@ -168,10 +168,11 @@ class MainWindow(QMainWindow):
             data = cursor.fetchall()
             for i in range(len(data)):
                 d = dict(data[i])
-                if d['Equipe_idEquipe'] != None:
-                    self.widget_personnel_listWidget_personnel.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" | "+ str(d['Equipe_idEquipe']))
-                else:
-                    self.widget_personnel_listWidget_personnel.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |      ")
+                if d['nom'] != "Système":
+                    if d['Equipe_idEquipe'] != None:
+                        self.widget_personnel_listWidget_personnel.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" | "+ str(d['Equipe_idEquipe']))
+                    else:
+                        self.widget_personnel_listWidget_personnel.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |      ")
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
         finally:
@@ -198,7 +199,7 @@ class MainWindow(QMainWindow):
             data = cursor.fetchall()
             for i in range(len(data)):
                 d = dict(data[i])
-                self.widget_equipes_listWidget_equipes.addItem(str(d['nom_eq'])+" | "+ str(d['abreviation_eq']))
+                self.widget_equipes_listWidget_equipes.addItem(str(d['idEquipe'])+" | "+str(d['nom_eq'])+" | "+ str(d['abreviation_eq']))
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
         finally:
@@ -244,10 +245,11 @@ class MainWindow(QMainWindow):
             data = cursor.fetchall()
             for i in range(len(data)):
                 d = dict(data[i])
-                if d['Equipe_idEquipe'] != None:
-                    self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" | "+ str(d['Equipe_idEquipe']))
-                else:
-                    self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |     ")
+                if d['nom'] != "Système":
+                    if d['Equipe_idEquipe'] != None:
+                        self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" | "+ str(d['Equipe_idEquipe']))
+                    else:
+                        self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |     ")
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
         finally:
