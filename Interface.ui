@@ -130,7 +130,7 @@
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="widget_home">
         <widget class="QLabel" name="label_home">
@@ -285,7 +285,7 @@
           <string>Créer chercheur</string>
          </property>
         </widget>
-        <widget class="QListWidget" name="listWidget">
+        <widget class="QListWidget" name="widget_personnel_listWidget_personnel">
          <property name="geometry">
           <rect>
            <x>0</x>
@@ -297,16 +297,6 @@
         </widget>
        </widget>
        <widget class="QWidget" name="widget_equipes">
-        <widget class="QTableWidget" name="tableWidget_equipes">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>60</y>
-           <width>601</width>
-           <height>451</height>
-          </rect>
-         </property>
-        </widget>
         <widget class="QLabel" name="widget_equipes_label">
          <property name="geometry">
           <rect>
@@ -354,6 +344,156 @@
          </property>
          <property name="text">
           <string>Supprimer chercheur</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_equipes_btn_creer_equipe">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>520</y>
+           <width>111</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Créer une équipe</string>
+         </property>
+        </widget>
+        <widget class="QListWidget" name="widget_equipes_listWidget_equipes">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>60</y>
+           <width>601</width>
+           <height>451</height>
+          </rect>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="widget_creer_equipe">
+        <widget class="QLabel" name="widget_equipes_label_7">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>0</y>
+           <width>101</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Equipes</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_22">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>120</y>
+           <width>101</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Nom de l'équipe :</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_24">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>240</y>
+           <width>101</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Description :</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_25">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>200</y>
+           <width>101</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Axe de recherche :</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_26">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>160</y>
+           <width>101</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Abreviation :</string>
+         </property>
+        </widget>
+        <widget class="QTextEdit" name="widget_creer_equipes_textEdit_description">
+         <property name="geometry">
+          <rect>
+           <x>150</x>
+           <y>250</y>
+           <width>331</width>
+           <height>121</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="widget_creer_equipes_lineEdit_axe">
+         <property name="geometry">
+          <rect>
+           <x>150</x>
+           <y>210</y>
+           <width>331</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="widget_creer_equipes_lineEdit_nom">
+         <property name="geometry">
+          <rect>
+           <x>150</x>
+           <y>130</y>
+           <width>331</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="widget_creer_equipes_lineEdit_abreviation">
+         <property name="geometry">
+          <rect>
+           <x>150</x>
+           <y>170</y>
+           <width>331</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_creer_equipes_btn_creer_equipe">
+         <property name="geometry">
+          <rect>
+           <x>490</x>
+           <y>510</y>
+           <width>111</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Créer equipe</string>
          </property>
         </widget>
        </widget>
@@ -754,26 +894,6 @@
           <string>Ajouter à l'équipe</string>
          </property>
         </widget>
-        <widget class="QListWidget" name="widget_ajouter_chercheur_listWidget_personnel">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>80</y>
-           <width>281</width>
-           <height>431</height>
-          </rect>
-         </property>
-        </widget>
-        <widget class="QListWidget" name="widget_ajouter_chercheur_listWidget_equipe">
-         <property name="geometry">
-          <rect>
-           <x>320</x>
-           <y>80</y>
-           <width>281</width>
-           <height>431</height>
-          </rect>
-         </property>
-        </widget>
         <widget class="QLabel" name="label_17">
          <property name="geometry">
           <rect>
@@ -828,6 +948,26 @@
          </property>
          <property name="text">
           <string>Ajouter personnel à equipe</string>
+         </property>
+        </widget>
+        <widget class="QListWidget" name="widget_ajouter_chercheur_listWidget_equipe">
+         <property name="geometry">
+          <rect>
+           <x>320</x>
+           <y>80</y>
+           <width>281</width>
+           <height>431</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QListWidget" name="widget_ajouter_chercheur_listWidget_chercheur">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>80</y>
+           <width>281</width>
+           <height>431</height>
+          </rect>
          </property>
         </widget>
        </widget>
