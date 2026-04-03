@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
         self.widget_creer_equipes_btn_creer_equipe.clicked.connect(self.creer_equipe)
         self.btn_connection.clicked.connect(self.afficher_connection)
         self.widget_connection_btn_connection.clicked.connect(self.verification_connection)
+        self.widget_ajouter_chercheur_btn_ajouter.clicked.connect(self.ajouter_chercheur)
 
         # Page d'affichage par défaut
         self.stackedWidget.setCurrentWidget(self.widget_home)
@@ -110,8 +111,10 @@ class MainWindow(QMainWindow):
             data = cursor.fetchall()
             for i in range(len(data)):
                 d = dict(data[i])
-                self.widget_personnel_listWidget_personnel.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade']))
-
+                if d['Equipe_idEquipe'] != None:
+                    self.widget_personnel_listWidget_personnel.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" | "+ str(d['Equipe_idEquipe']))
+                else:
+                    self.widget_personnel_listWidget_personnel.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |      ")
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
 
@@ -175,7 +178,7 @@ class MainWindow(QMainWindow):
             data = cursor.fetchall()
             for i in range(len(data)):
                 d = dict(data[i])
-                self.widget_ajouter_chercheur_listWidget_equipe.addItem(str(d['nom_eq'])+" | "+ str(d['abreviation_eq']))
+                self.widget_ajouter_chercheur_listWidget_equipe.addItem(str(d['idEquipe'])+" | "+str(d['nom_eq'])+" | "+ str(d['abreviation_eq']))
             
             sql = """SELECT * FROM chercheur"""
 
@@ -183,8 +186,10 @@ class MainWindow(QMainWindow):
             data = cursor.fetchall()
             for i in range(len(data)):
                 d = dict(data[i])
-                self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade']))
-
+                if d['Equipe_idEquipe'] != None:
+                    self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" | "+ str(d['Equipe_idEquipe']))
+                else:
+                    self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |     ")
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
         finally:
@@ -196,6 +201,39 @@ class MainWindow(QMainWindow):
         pass
 
     # Méthodes gestion BDD
+    def ajouter_chercheur(self):
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            n = self.widget_ajouter_chercheur_listWidget_chercheur.currentItem()
+            p = self.widget_ajouter_chercheur_listWidget_chercheur.currentItem()
+            e = self.widget_ajouter_chercheur_listWidget_equipe.currentItem()
+
+            if n != None and p != None and e != None:
+                nom_select = n.text().split(" | ")[0]
+                prenom_select = p.text().split(" | ")[1]
+                equipe = e.text().split(" | ")[1]
+
+                sql = """SELECT * FROM equipe WHERE nom_eq = ?"""
+                
+                cursor.execute(sql,(equipe,))
+                equ = dict(cursor.fetchone())['idEquipe']
+
+                sql = """UPDATE chercheur SET Equipe_idEquipe = ?  WHERE prenom = ? AND nom = ?"""
+                cursor.execute(sql,(equ,nom_select,prenom_select))
+                connection.commit()
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+
+        finally:
+            if connection:
+                connection.close()
+            self.afficher_ajouter_chercheur()
+
     def creer_chercheur(self):
         nom = self.widget_creer_chercheur_lineEdit_nom.text()
         prenom = self.widget_creer_chercheur_lineEdit_prenom.text()
