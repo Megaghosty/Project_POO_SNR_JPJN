@@ -248,7 +248,26 @@ class MainWindow(QMainWindow):
     def afficher_creer_equipe(self):
         if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
             return
-        self.stackedWidget.setCurrentWidget(self.widget_creer_equipe)
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            sql = """SELECT * FROM chercheur WHERE est_permanent = 1 AND Equipe_idEquipe IS NULL"""
+            cursor.execute(sql)
+            data = cursor.fetchall()
+            for i in range(len(data)):
+                d = dict(data[i])
+                if d['nom'] != "Système":
+                    self.widget_creer_equipes_comboBox_chef.addItem(str(d['nom'])+" | "+str(d['prenom']))
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_creer_equipe)
                 
     def afficher_equipe(self):
         connection = connecter_bdd()
@@ -531,9 +550,18 @@ class MainWindow(QMainWindow):
                 VALUES (?, ?, ?, ?, ?)
             """
             valeurs = (nom, abreviation, axe, description, date)
-
             cursor.execute(sql, valeurs)
             connection.commit()
+
+            chef = self.widget_creer_equipes_comboBox_chef.currentText()
+            nom_chef = chef.split(" | ")[0]
+            prenom_chef = chef.split(" | ")[1]
+            cursor.execute("""SELECT * FROM equipe WHERE nom_eq = ?""",(nom,))
+            id_eq = dict(cursor.fetchone())['idEquipe']
+            cursor.execute("UPDATE chercheur SET grade = ? WHERE nom = ? AND prenom = ?", ("Chef d'équipe",nom_chef, prenom_chef))
+            cursor.execute("UPDATE chercheur SET Equipe_idEquipe = ? WHERE nom = ? AND prenom = ?", (id_eq,nom_chef, prenom_chef))
+            connection.commit()
+            
             print("✅ Équipe créée avec succès.")
             self.nettoyer_formulaire()
 
@@ -544,6 +572,7 @@ class MainWindow(QMainWindow):
         finally:
             if connection:
                 connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_equipes)
 
 if __name__ == "__main__":
     window = MainWindow("IETR")
