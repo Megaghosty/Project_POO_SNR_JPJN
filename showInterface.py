@@ -170,13 +170,9 @@ class MainWindow(QMainWindow):
         self.widget_equipes_btn_ajouter_chercheur.setVisible(peut_gerer_personnel_equipes)
         self.widget_equipes_btn_supprimer_chercheur.setVisible(peut_gerer_personnel_equipes)
 
-        # /!\ DÉCOMMETTRE ET CHANGER LE NOM DU BOUTON ICI POUR LES PUBLICATIONS :
-        # if hasattr(self, 'nom_du_bouton_creer_publication'):
-        #     self.nom_du_bouton_creer_publication.setVisible(peut_gerer_publications)
-
 
     # ==========================================
-    # MÉTHODES D'AFFICHAGE
+    # MÉTHODES D'AFFICHAGE ET SUPPRESSION
     # ==========================================
     
     def afficher_personnel(self):
@@ -204,8 +200,52 @@ class MainWindow(QMainWindow):
                 connection.close()
             self.stackedWidget.setCurrentWidget(self.widget_personnel)
         
+    def afficher_supprimer_chercheur(self):
+        """Supprime le chercheur sélectionné dans la liste personnel."""
+        # 1. Vérification des droits
+        if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
+            print("⛔ Accès refusé.")
+            return
+
+        # 2. Récupération de la sélection
+        item_selectionne = self.widget_personnel_listWidget_personnel.currentItem()
+        if item_selectionne is None:
+            print("⚠️ Veuillez sélectionner un chercheur dans la liste avant de cliquer sur supprimer.")
+            return
+
+        texte = item_selectionne.text().split(" | ")
+        nom_select = texte[0].strip()
+        prenom_select = texte[1].strip()
+
+        # 3. Protection du compte système
+        if nom_select == "Système" and prenom_select == "Admin":
+            print("⛔ Impossible de supprimer le compte Super-Administrateur !")
+            return
+
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            # On supprime en fonction du nom et prénom
+            sql = "DELETE FROM chercheur WHERE nom = ? AND prenom = ?"
+            cursor.execute(sql, (nom_select, prenom_select))
+            connection.commit()
+            print(f"✅ Chercheur {prenom_select} {nom_select} supprimé avec succès.")
+
+        except sqlite3.Error as e:
+            if connection:
+                connection.rollback()
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
+            
+            # On met à jour la liste visuelle !
+            self.afficher_personnel()
+
     def afficher_creer_equipe(self):
-        # Bloquer l'accès direct si l'utilisateur n'est pas Admin
         if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
             return
         self.stackedWidget.setCurrentWidget(self.widget_creer_equipe)
@@ -231,17 +271,56 @@ class MainWindow(QMainWindow):
                 connection.close()
             self.stackedWidget.setCurrentWidget(self.widget_equipes)
 
+    def afficher_supprimer_chercheur_equipe(self):
+        """Supprime l'équipe sélectionnée dans la liste des équipes."""
+        # 1. Vérification des droits
+        if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
+            print("⛔ Accès refusé.")
+            return
+
+        # 2. Récupération de la sélection
+        item_selectionne = self.widget_equipes_listWidget_equipes.currentItem()
+        if item_selectionne is None:
+            print("⚠️ Veuillez sélectionner une équipe dans la liste avant de cliquer sur supprimer.")
+            return
+
+        texte = item_selectionne.text().split(" | ")
+        id_equipe = texte[0].strip()
+        nom_equipe = texte[1].strip()
+
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            
+            # Bonne pratique SQL : on retire cette équipe à tous les chercheurs qui en faisaient partie
+            cursor.execute("UPDATE chercheur SET Equipe_idEquipe = NULL WHERE Equipe_idEquipe = ?", (id_equipe,))
+            
+            # On supprime définitivement l'équipe
+            cursor.execute("DELETE FROM equipe WHERE idEquipe = ?", (id_equipe,))
+            connection.commit()
+            print(f"✅ Équipe '{nom_equipe}' supprimée avec succès.")
+
+        except sqlite3.Error as e:
+            if connection:
+                connection.rollback()
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
+            
+            # On met à jour la liste visuelle !
+            self.afficher_equipe()
+
     def afficher_publications(self):
         self.stackedWidget.setCurrentWidget(self.widget_publications)
         
     def afficher_creer_chercheur(self):
-        # Sécurité
         if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
             return
         self.stackedWidget.setCurrentWidget(self.widget_creer_chercheur)
-        
-    def afficher_supprimer_chercheur(self):
-        pass
         
     def afficher_ajouter_chercheur(self):
         if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
@@ -282,9 +361,6 @@ class MainWindow(QMainWindow):
                 connection.close()
             self.stackedWidget.setCurrentWidget(self.widget_ajouter_chercheur)
         
-    def afficher_supprimer_chercheur_equipe(self):
-        pass
-
     # ==========================================
     # MÉTHODES GESTION BDD
     # ==========================================
