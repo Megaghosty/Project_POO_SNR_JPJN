@@ -92,7 +92,7 @@
             </spacer>
            </item>
            <item>
-            <spacer name="horizontalSpacer">
+            <spacer name="verticalSpacer_2">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -108,9 +108,23 @@
             </spacer>
            </item>
            <item>
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>Connecté en  :</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="btn_connection">
              <property name="text">
               <string>Se connecter</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_deconnection">
+             <property name="text">
+              <string>Se déconnecter</string>
              </property>
             </widget>
            </item>
@@ -130,7 +144,7 @@
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>6</number>
        </property>
        <widget class="QWidget" name="widget_home">
         <widget class="QLabel" name="label_home">
@@ -814,6 +828,19 @@
          </property>
          <property name="text">
           <string>Créer</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_compteutilse">
+         <property name="geometry">
+          <rect>
+           <x>70</x>
+           <y>520</y>
+           <width>431</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Compte Déja Existant </string>
          </property>
         </widget>
        </widget>

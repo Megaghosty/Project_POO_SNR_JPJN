@@ -40,6 +40,14 @@ class MainWindow(QMainWindow):
         self.btn_connection.clicked.connect(self.afficher_connection)
         self.widget_connection_btn_connection.clicked.connect(self.verification_connection)
         self.widget_ajouter_chercheur_btn_ajouter.clicked.connect(self.ajouter_chercheur)
+        self.btn_deconnection.clicked.connect(self.deconnexion)
+
+        # ---------------------------------------------------------
+        # CONFIGURATION DU MESSAGE D'ERREUR CACHÉ
+        # ---------------------------------------------------------
+        if hasattr(self, 'label_compteutilse'):
+            self.label_compteutilse.setVisible(False)
+            self.label_compteutilse.setStyleSheet("color: red; font-weight: bold;")
 
         # 🔒 ON APPLIQUE LES DROITS DÈS LE DÉMARRAGE (Tout sera caché par défaut)
         self.appliquer_droits()
@@ -106,6 +114,12 @@ class MainWindow(QMainWindow):
             if connection:
                 connection.close()
 
+    def deconnexion(self):
+        self.utilisateur_connecte = None
+        print("👋 Vous êtes déconnecté.")
+        self.appliquer_droits()
+        self.stackedWidget.setCurrentWidget(self.widget_home)
+
     def appliquer_droits(self):
         """Affiche ou masque les boutons selon le profil de l'utilisateur."""
         
@@ -115,10 +129,17 @@ class MainWindow(QMainWindow):
             peut_gerer_personnel_equipes = False
             peut_gerer_publications = False
             
+            self.btn_connection.setVisible(True)
+            self.btn_deconnection.setVisible(False)
+            self.label_23.setText("Non connecté")
+            self.label_23.setStyleSheet("color: gray;")
+            
         # 2. Sinon, on vérifie les rôles normalement
         else:
             role = self.utilisateur_connecte['role']
             grade = self.utilisateur_connecte['grade']
+            prenom = self.utilisateur_connecte['prenom']
+            nom = self.utilisateur_connecte['nom']
 
             est_admin = (role == "Administrateur" or grade == "Super-Admin")
             est_stagiaire = any(mot in grade for mot in ["Stagiaire", "Doctorant", "Assistant"])
@@ -132,6 +153,11 @@ class MainWindow(QMainWindow):
             else:
                 # Chercheur Permanent
                 peut_gerer_publications = True
+
+            self.btn_connection.setVisible(False) 
+            self.btn_deconnection.setVisible(True) 
+            self.label_23.setText(f"👤 {prenom} {nom}")
+            self.label_23.setStyleSheet("color: green; font-weight: bold;")
 
         # --- APPLICATION À L'INTERFACE ---
         
@@ -147,8 +173,6 @@ class MainWindow(QMainWindow):
         # /!\ DÉCOMMETTRE ET CHANGER LE NOM DU BOUTON ICI POUR LES PUBLICATIONS :
         # if hasattr(self, 'nom_du_bouton_creer_publication'):
         #     self.nom_du_bouton_creer_publication.setVisible(peut_gerer_publications)
-        
-        print(f"🔐 Droits mis à jour : Admin={est_admin}, Créer Publi={peut_gerer_publications}")
 
 
     # ==========================================
@@ -249,7 +273,8 @@ class MainWindow(QMainWindow):
                     if d['Equipe_idEquipe'] != None:
                         self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" | "+ str(d['Equipe_idEquipe']))
                     else:
-                        self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |     ")
+                        self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |      ")
+
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
         finally:
@@ -260,7 +285,10 @@ class MainWindow(QMainWindow):
     def afficher_supprimer_chercheur_equipe(self):
         pass
 
-    # Méthodes gestion BDD
+    # ==========================================
+    # MÉTHODES GESTION BDD
+    # ==========================================
+
     def ajouter_chercheur(self):
         connection = connecter_bdd()
         if connection is None:
@@ -285,6 +313,7 @@ class MainWindow(QMainWindow):
                 sql = """UPDATE chercheur SET Equipe_idEquipe = ?  WHERE prenom = ? AND nom = ?"""
                 cursor.execute(sql,(equ,nom_select,prenom_select))
                 connection.commit()
+                print("✅ Chercheur ajouté à l'équipe avec succès.")
 
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
@@ -330,6 +359,24 @@ class MainWindow(QMainWindow):
 
         try:
             cursor = connection.cursor()
+
+            # ---------------------------------------------------------
+            # 🛡️ VÉRIFICATION ANTIDOUBLONS : CHERCHEUR
+            # ---------------------------------------------------------
+            cursor.execute("SELECT nom FROM chercheur WHERE user = ? OR email = ?", (userName, email))
+            if cursor.fetchone():
+                print("⛔ Erreur : Ce nom d'utilisateur ou cet email est déjà utilisé !")
+                # On affiche le message d'erreur sur l'interface
+                if hasattr(self, 'label_compteutilse'):
+                    self.label_compteutilse.setText("⚠️ Ce nom d'utilisateur ou cet email est déjà pris !")
+                    self.label_compteutilse.setVisible(True)
+                return 
+            
+            # Si tout est bon, on cache le message d'erreur
+            if hasattr(self, 'label_compteutilse'):
+                self.label_compteutilse.setVisible(False)
+            # ---------------------------------------------------------
+
             salt = bcrypt.gensalt()
             mdp_hashe = bcrypt.hashpw(mdp.encode('utf-8'), salt).decode('utf-8')
 
@@ -366,24 +413,41 @@ class MainWindow(QMainWindow):
         self.widget_creer_chercheur_comboBox_sexe.setCurrentIndex(0)
         self.widget_creer_chercheur_comboBox_grade.setCurrentIndex(0)
 
+        # On recache le message d'erreur s'il était visible
+        if hasattr(self, 'label_compteutilse'):
+            self.label_compteutilse.setVisible(False)
+
         self.widget_creer_equipes_lineEdit_nom.clear()
         self.widget_creer_equipes_lineEdit_abreviation.clear()
         self.widget_creer_equipes_lineEdit_axe.clear()
         self.widget_creer_equipes_textEdit_description.clear()
 
     def creer_equipe(self):
-        nom = self.widget_creer_equipes_lineEdit_nom.text()
-        abreviation = self.widget_creer_equipes_lineEdit_abreviation.text()
+        nom = self.widget_creer_equipes_lineEdit_nom.text().strip()
+        abreviation = self.widget_creer_equipes_lineEdit_abreviation.text().strip()
         axe = self.widget_creer_equipes_lineEdit_axe.text()
         description = self.widget_creer_equipes_textEdit_description.toPlainText()
         date = dt.datetime.now()
         
+        if not nom or not abreviation:
+            print("⚠️ Erreur : Le nom de l'équipe et son abréviation sont obligatoires.")
+            return
+
         connection = connecter_bdd()
         if connection is None:
             return 
 
         try:
             cursor = connection.cursor()
+
+            # ---------------------------------------------------------
+            # 🛡️ VÉRIFICATION ANTIDOUBLONS : ÉQUIPE
+            # ---------------------------------------------------------
+            cursor.execute("SELECT nom_eq FROM equipe WHERE nom_eq = ? OR abreviation_eq = ?", (nom, abreviation))
+            if cursor.fetchone():
+                print("⛔ Erreur : Une équipe avec ce nom ou cette abréviation existe déjà !")
+                return 
+            # ---------------------------------------------------------
 
             sql = """
                 INSERT INTO equipe 
