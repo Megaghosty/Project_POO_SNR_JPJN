@@ -144,7 +144,7 @@
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>4</number>
+        <number>7</number>
        </property>
        <widget class="QWidget" name="widget_home">
         <widget class="QLabel" name="label_home">
@@ -357,7 +357,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>Supprimer chercheur</string>
+          <string>Supprimer equipe</string>
          </property>
         </widget>
         <widget class="QPushButton" name="widget_equipes_btn_creer_equipe">
@@ -534,7 +534,177 @@
          </property>
         </widget>
        </widget>
-       <widget class="QWidget" name="widget_publications"/>
+       <widget class="QWidget" name="widget_publications">
+        <widget class="QLabel" name="widget_equipes_label_8">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>0</y>
+           <width>141</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Publications</string>
+         </property>
+        </widget>
+        <widget class="QListWidget" name="widget_publication_listWidget_publications">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>50</y>
+           <width>601</width>
+           <height>451</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_publication_btn_afficher">
+         <property name="geometry">
+          <rect>
+           <x>510</x>
+           <y>510</y>
+           <width>91</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Afficher</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_publication_btn_creer">
+         <property name="geometry">
+          <rect>
+           <x>410</x>
+           <y>510</y>
+           <width>91</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Créer</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="widget_creer_publication">
+        <widget class="QLabel" name="widget_equipes_label_9">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>0</y>
+           <width>201</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Créer publication</string>
+         </property>
+        </widget>
+        <widget class="QTextEdit" name="widget_creer_publication_textEdit_publication">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>50</y>
+           <width>601</width>
+           <height>451</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_creer_publication_btn_creer">
+         <property name="geometry">
+          <rect>
+           <x>510</x>
+           <y>510</y>
+           <width>91</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Créer</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="widget_creer_publication_lineEdit_nom">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>510</y>
+           <width>271</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_28">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>510</y>
+           <width>91</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Nom publication :</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="widget_afficher_publication">
+        <widget class="QLabel" name="widget_equipes_label_10">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>0</y>
+           <width>201</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Afficher publication</string>
+         </property>
+        </widget>
+        <widget class="QTextBrowser" name="widget_afficher_publication_textBrowser_publication">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>50</y>
+           <width>601</width>
+           <height>451</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="widget_afficher_publication_btn_retour">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>510</y>
+           <width>91</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Retour</string>
+         </property>
+        </widget>
+       </widget>
        <widget class="QWidget" name="widget_creer_chercheur">
         <widget class="QWidget" name="verticalLayoutWidget_4">
          <property name="geometry">

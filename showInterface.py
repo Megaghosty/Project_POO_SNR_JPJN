@@ -36,6 +36,11 @@ class MainWindow(QMainWindow):
         
         self.widget_creer_chercheur_btn_creer.clicked.connect(self.creer_chercheur)
         self.widget_creer_equipes_btn_creer_equipe.clicked.connect(self.creer_equipe)
+
+        self.widget_publication_btn_creer.clicked.connect(self.afficher_creer_publication)
+        self.widget_creer_publication_btn_creer.clicked.connect(self.creer_publication)
+        self.widget_afficher_publication_btn_retour.clicked.connect(self.afficher_publications)
+        self.widget_publication_btn_afficher.clicked.connect(self.afficher_publication)
         
         self.btn_connection.clicked.connect(self.afficher_connection)
         self.widget_connection_btn_connection.clicked.connect(self.verification_connection)
@@ -174,7 +179,57 @@ class MainWindow(QMainWindow):
     # ==========================================
     # MÉTHODES D'AFFICHAGE ET SUPPRESSION
     # ==========================================
-    
+    def afficher_publication(self):
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            self.widget_personnel_listWidget_personnel.clear()
+            sql = """SELECT * FROM publication WHERE titre = ?"""
+            cursor.execute(sql,(self.widget_publication_listWidget_publications.currentItem().text(),))
+            data = dict(cursor.fetchone())
+            self.widget_afficher_publication_textBrowser_publication.setText(data['fichier'])
+            self.widget_publication_listWidget_publications.clear()
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+
+        finally:
+            if connection:
+                connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_afficher_publication)
+
+    def creer_publication(self):
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            self.widget_personnel_listWidget_personnel.clear()
+            sql = """
+                INSERT INTO publication 
+                (titre, fichier) 
+                VALUES (?, ?)
+            """
+            valeurs = (self.widget_creer_publication_lineEdit_nom.text(), self.widget_creer_publication_textEdit_publication.toPlainText())
+
+            cursor.execute(sql, valeurs)
+            connection.commit()
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_publications)
+
+    def afficher_creer_publication(self):
+            if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
+                return
+            self.stackedWidget.setCurrentWidget(self.widget_creer_publication)
+
     def afficher_personnel(self):
         connection = connecter_bdd()
         if connection is None:
@@ -334,7 +389,25 @@ class MainWindow(QMainWindow):
             self.afficher_equipe()
 
     def afficher_publications(self):
-        self.stackedWidget.setCurrentWidget(self.widget_publications)
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            self.widget_personnel_listWidget_personnel.clear()
+            sql = """SELECT * FROM publication"""
+            cursor.execute(sql)
+            data = cursor.fetchall()
+            for i in range(len(data)):
+                d = dict(data[i])
+                self.widget_publication_listWidget_publications.addItem(str(d['titre']))
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+        finally:
+            if connection:
+                connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_publications)
         
     def afficher_creer_chercheur(self):
         if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
