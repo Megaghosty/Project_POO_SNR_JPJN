@@ -76,7 +76,8 @@ class MainWindow(QMainWindow):
 
         try: 
             cursor = connection.cursor()
-            query = "SELECT idChercheur, nom, prenom, type_role, grade, pw FROM chercheur WHERE user = ?"
+            # On récupère aussi l'équipe de l'utilisateur pour le Chef d'équipe
+            query = "SELECT idChercheur, nom, prenom, type_role, grade, pw, Equipe_idEquipe FROM chercheur WHERE user = ?"
             cursor.execute(query, (username,))
             result = cursor.fetchone()
 
@@ -91,11 +92,12 @@ class MainWindow(QMainWindow):
                         "nom": result['nom'],
                         "prenom": result['prenom'],
                         "role": result['type_role'],
-                        "grade": result['grade']
+                        "grade": result['grade'],
+                        "id_equipe": result['Equipe_idEquipe'] # NOUVEAU
                     }
                     
                     print(f"✅ Connexion réussie ! Bienvenue {self.utilisateur_connecte['prenom']}.")
-                    print(f"   - Rôle : {self.utilisateur_connecte['role']}")
+                    print(f"   - Grade : {self.utilisateur_connecte['grade']}")
                     
                     # 🔒 On met à jour les droits d'affichage après connexion !
                     self.appliquer_droits()
@@ -123,10 +125,9 @@ class MainWindow(QMainWindow):
     def appliquer_droits(self):
         """Affiche ou masque les boutons selon le profil de l'utilisateur."""
         
-        # 1. Si personne n'est connecté, on bloque tout d'office
         if self.utilisateur_connecte is None:
             est_admin = False
-            peut_gerer_personnel_equipes = False
+            est_chef = False
             peut_gerer_publications = False
             
             self.btn_connection.setVisible(True)
@@ -134,41 +135,48 @@ class MainWindow(QMainWindow):
             self.label_23.setText("Non connecté")
             self.label_23.setStyleSheet("color: gray;")
             
-        # 2. Sinon, on vérifie les rôles normalement
         else:
             role = self.utilisateur_connecte['role']
             grade = self.utilisateur_connecte['grade']
             prenom = self.utilisateur_connecte['prenom']
             nom = self.utilisateur_connecte['nom']
 
+            # Définition des rôles
             est_admin = (role == "Administrateur" or grade == "Super-Admin")
+            est_chef = (grade == "Chef d'équipe")
             est_stagiaire = any(mot in grade for mot in ["Stagiaire", "Doctorant", "Assistant"])
             
-            peut_gerer_personnel_equipes = est_admin
-            
-            if est_admin:
+            # Gestion des publications
+            if est_admin or est_chef:
                 peut_gerer_publications = True
             elif est_stagiaire:
                 peut_gerer_publications = False
             else:
-                # Chercheur Permanent
-                peut_gerer_publications = True
+                peut_gerer_publications = True # Chercheur normal
 
             self.btn_connection.setVisible(False) 
             self.btn_deconnection.setVisible(True) 
-            self.label_23.setText(f"👤 {prenom} {nom}")
+            self.label_23.setText(f"👤 {prenom} {nom} ({grade})")
             self.label_23.setStyleSheet("color: green; font-weight: bold;")
 
         # --- APPLICATION À L'INTERFACE ---
         
-        # Droits sur le personnel
-        self.widget_personnel_btn_creer_chercheur.setVisible(peut_gerer_personnel_equipes)
-        self.widget_personnel_btn_supprimer_chercheur.setVisible(peut_gerer_personnel_equipes)
+        # Seul l'Admin peut créer/supprimer des profils ou des équipes entières
+        peut_creer_suppr_global = est_admin
         
-        # Droits sur les équipes
-        self.widget_equipes_btn_creer_equipe.setVisible(peut_gerer_personnel_equipes)
-        self.widget_equipes_btn_ajouter_chercheur.setVisible(peut_gerer_personnel_equipes)
-        self.widget_equipes_btn_supprimer_chercheur.setVisible(peut_gerer_personnel_equipes)
+        self.widget_personnel_btn_creer_chercheur.setVisible(peut_creer_suppr_global)
+        self.widget_personnel_btn_supprimer_chercheur.setVisible(peut_creer_suppr_global)
+        
+        self.widget_equipes_btn_creer_equipe.setVisible(peut_creer_suppr_global)
+        self.widget_equipes_btn_supprimer_chercheur.setVisible(peut_creer_suppr_global) # Attention ce bouton supprime l'équipe !
+
+        # Le Chef d'équipe ET l'Admin peuvent gérer les membres des équipes
+        peut_gerer_membres = est_admin or est_chef
+        self.widget_equipes_btn_ajouter_chercheur.setVisible(peut_gerer_membres)
+
+        # /!\ DÉCOMMETTRE ET CHANGER LE NOM DU BOUTON ICI POUR LES PUBLICATIONS :
+        # if hasattr(self, 'nom_du_bouton_creer_publication'):
+        #     self.nom_du_bouton_creer_publication.setVisible(peut_gerer_publications)
 
 
     # ==========================================
@@ -201,48 +209,37 @@ class MainWindow(QMainWindow):
             self.stackedWidget.setCurrentWidget(self.widget_personnel)
         
     def afficher_supprimer_chercheur(self):
-        """Supprime le chercheur sélectionné dans la liste personnel."""
-        # 1. Vérification des droits
         if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
             print("⛔ Accès refusé.")
             return
 
-        # 2. Récupération de la sélection
         item_selectionne = self.widget_personnel_listWidget_personnel.currentItem()
         if item_selectionne is None:
-            print("⚠️ Veuillez sélectionner un chercheur dans la liste avant de cliquer sur supprimer.")
+            print("⚠️ Veuillez sélectionner un chercheur.")
             return
 
         texte = item_selectionne.text().split(" | ")
         nom_select = texte[0].strip()
         prenom_select = texte[1].strip()
 
-        # 3. Protection du compte système
         if nom_select == "Système" and prenom_select == "Admin":
             print("⛔ Impossible de supprimer le compte Super-Administrateur !")
             return
 
         connection = connecter_bdd()
-        if connection is None:
-            return 
+        if connection is None: return 
 
         try:
             cursor = connection.cursor()
-            # On supprime en fonction du nom et prénom
             sql = "DELETE FROM chercheur WHERE nom = ? AND prenom = ?"
             cursor.execute(sql, (nom_select, prenom_select))
             connection.commit()
-            print(f"✅ Chercheur {prenom_select} {nom_select} supprimé avec succès.")
-
+            print(f"✅ Chercheur {prenom_select} {nom_select} supprimé.")
         except sqlite3.Error as e:
-            if connection:
-                connection.rollback()
+            if connection: connection.rollback()
             print(f"❌ Erreur SQLite : {e}")
         finally:
-            if connection:
-                connection.close()
-            
-            # On met à jour la liste visuelle !
+            if connection: connection.close()
             self.afficher_personnel()
 
     def afficher_creer_equipe(self):
@@ -254,6 +251,7 @@ class MainWindow(QMainWindow):
 
         try:
             cursor = connection.cursor()
+            self.widget_creer_equipes_comboBox_chef.clear()
             sql = """SELECT * FROM chercheur WHERE est_permanent = 1 AND Equipe_idEquipe IS NULL"""
             cursor.execute(sql)
             data = cursor.fetchall()
@@ -291,46 +289,32 @@ class MainWindow(QMainWindow):
             self.stackedWidget.setCurrentWidget(self.widget_equipes)
 
     def afficher_supprimer_chercheur_equipe(self):
-        """Supprime l'équipe sélectionnée dans la liste des équipes."""
-        # 1. Vérification des droits
         if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
             print("⛔ Accès refusé.")
             return
 
-        # 2. Récupération de la sélection
         item_selectionne = self.widget_equipes_listWidget_equipes.currentItem()
         if item_selectionne is None:
-            print("⚠️ Veuillez sélectionner une équipe dans la liste avant de cliquer sur supprimer.")
+            print("⚠️ Veuillez sélectionner une équipe.")
             return
 
         texte = item_selectionne.text().split(" | ")
         id_equipe = texte[0].strip()
-        nom_equipe = texte[1].strip()
 
         connection = connecter_bdd()
-        if connection is None:
-            return 
+        if connection is None: return 
 
         try:
             cursor = connection.cursor()
-            
-            # Bonne pratique SQL : on retire cette équipe à tous les chercheurs qui en faisaient partie
             cursor.execute("UPDATE chercheur SET Equipe_idEquipe = NULL WHERE Equipe_idEquipe = ?", (id_equipe,))
-            
-            # On supprime définitivement l'équipe
             cursor.execute("DELETE FROM equipe WHERE idEquipe = ?", (id_equipe,))
             connection.commit()
-            print(f"✅ Équipe '{nom_equipe}' supprimée avec succès.")
-
+            print(f"✅ Équipe supprimée.")
         except sqlite3.Error as e:
-            if connection:
-                connection.rollback()
+            if connection: connection.rollback()
             print(f"❌ Erreur SQLite : {e}")
         finally:
-            if connection:
-                connection.close()
-            
-            # On met à jour la liste visuelle !
+            if connection: connection.close()
             self.afficher_equipe()
 
     def afficher_publications(self):
@@ -342,7 +326,11 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentWidget(self.widget_creer_chercheur)
         
     def afficher_ajouter_chercheur(self):
-        if not self.utilisateur_connecte or self.utilisateur_connecte['role'] != "Administrateur":
+        if not self.utilisateur_connecte: return
+        is_admin = (self.utilisateur_connecte['role'] == "Administrateur")
+        is_chef = (self.utilisateur_connecte['grade'] == "Chef d'équipe")
+        
+        if not is_admin and not is_chef:
             return
 
         connection = connecter_bdd()
@@ -355,13 +343,27 @@ class MainWindow(QMainWindow):
             self.widget_ajouter_chercheur_listWidget_equipe.clear()
             self.widget_ajouter_chercheur_listWidget_chercheur.clear()
 
-            sql = """SELECT * FROM equipe"""
-            cursor.execute(sql)
+            # 🛡️ Si c'est un Chef d'équipe, on ne montre que SON équipe
+            if is_chef and not is_admin:
+                id_equipe_chef = self.utilisateur_connecte.get('id_equipe')
+                if id_equipe_chef is not None:
+                    sql = """SELECT * FROM equipe WHERE idEquipe = ?"""
+                    cursor.execute(sql, (id_equipe_chef,))
+                else:
+                    print("⚠️ Vous n'êtes rattaché à aucune équipe.")
+                    # Requête qui ne renvoie rien pour éviter de tout afficher
+                    cursor.execute("SELECT * FROM equipe WHERE idEquipe = -1")
+            else:
+                # Si c'est l'Admin, on montre tout
+                sql = """SELECT * FROM equipe"""
+                cursor.execute(sql)
+                
             data = cursor.fetchall()
             for i in range(len(data)):
                 d = dict(data[i])
                 self.widget_ajouter_chercheur_listWidget_equipe.addItem(str(d['idEquipe'])+" | "+str(d['nom_eq'])+" | "+ str(d['abreviation_eq']))
             
+            # Liste de tous les chercheurs
             sql = """SELECT * FROM chercheur"""
             cursor.execute(sql)
             data = cursor.fetchall()
@@ -405,10 +407,18 @@ class MainWindow(QMainWindow):
                 cursor.execute(sql,(equipe,))
                 equ = dict(cursor.fetchone())['idEquipe']
 
+                # Sécurité : vérifier que le chef n'ajoute pas à une autre équipe
+                is_admin = (self.utilisateur_connecte['role'] == "Administrateur")
+                if not is_admin:
+                    id_equipe_chef = self.utilisateur_connecte.get('id_equipe')
+                    if equ != id_equipe_chef:
+                        print("⛔ Accès refusé : Vous ne pouvez ajouter des membres qu'à votre propre équipe.")
+                        return
+
                 sql = """UPDATE chercheur SET Equipe_idEquipe = ?  WHERE prenom = ? AND nom = ?"""
                 cursor.execute(sql,(equ,nom_select,prenom_select))
                 connection.commit()
-                print("✅ Chercheur ajouté à l'équipe avec succès.")
+                print("✅ Chercheur affecté à l'équipe avec succès.")
 
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
@@ -455,22 +465,16 @@ class MainWindow(QMainWindow):
         try:
             cursor = connection.cursor()
 
-            # ---------------------------------------------------------
-            # 🛡️ VÉRIFICATION ANTIDOUBLONS : CHERCHEUR
-            # ---------------------------------------------------------
             cursor.execute("SELECT nom FROM chercheur WHERE user = ? OR email = ?", (userName, email))
             if cursor.fetchone():
                 print("⛔ Erreur : Ce nom d'utilisateur ou cet email est déjà utilisé !")
-                # On affiche le message d'erreur sur l'interface
                 if hasattr(self, 'label_compteutilse'):
                     self.label_compteutilse.setText("⚠️ Ce nom d'utilisateur ou cet email est déjà pris !")
                     self.label_compteutilse.setVisible(True)
                 return 
             
-            # Si tout est bon, on cache le message d'erreur
             if hasattr(self, 'label_compteutilse'):
                 self.label_compteutilse.setVisible(False)
-            # ---------------------------------------------------------
 
             salt = bcrypt.gensalt()
             mdp_hashe = bcrypt.hashpw(mdp.encode('utf-8'), salt).decode('utf-8')
@@ -508,7 +512,6 @@ class MainWindow(QMainWindow):
         self.widget_creer_chercheur_comboBox_sexe.setCurrentIndex(0)
         self.widget_creer_chercheur_comboBox_grade.setCurrentIndex(0)
 
-        # On recache le message d'erreur s'il était visible
         if hasattr(self, 'label_compteutilse'):
             self.label_compteutilse.setVisible(False)
 
@@ -535,14 +538,10 @@ class MainWindow(QMainWindow):
         try:
             cursor = connection.cursor()
 
-            # ---------------------------------------------------------
-            # 🛡️ VÉRIFICATION ANTIDOUBLONS : ÉQUIPE
-            # ---------------------------------------------------------
             cursor.execute("SELECT nom_eq FROM equipe WHERE nom_eq = ? OR abreviation_eq = ?", (nom, abreviation))
             if cursor.fetchone():
                 print("⛔ Erreur : Une équipe avec ce nom ou cette abréviation existe déjà !")
                 return 
-            # ---------------------------------------------------------
 
             sql = """
                 INSERT INTO equipe 
@@ -554,13 +553,14 @@ class MainWindow(QMainWindow):
             connection.commit()
 
             chef = self.widget_creer_equipes_comboBox_chef.currentText()
-            nom_chef = chef.split(" | ")[0]
-            prenom_chef = chef.split(" | ")[1]
-            cursor.execute("""SELECT * FROM equipe WHERE nom_eq = ?""",(nom,))
-            id_eq = dict(cursor.fetchone())['idEquipe']
-            cursor.execute("UPDATE chercheur SET grade = ? WHERE nom = ? AND prenom = ?", ("Chef d'équipe",nom_chef, prenom_chef))
-            cursor.execute("UPDATE chercheur SET Equipe_idEquipe = ? WHERE nom = ? AND prenom = ?", (id_eq,nom_chef, prenom_chef))
-            connection.commit()
+            if chef:
+                nom_chef = chef.split(" | ")[0]
+                prenom_chef = chef.split(" | ")[1]
+                cursor.execute("""SELECT * FROM equipe WHERE nom_eq = ?""",(nom,))
+                id_eq = dict(cursor.fetchone())['idEquipe']
+                cursor.execute("UPDATE chercheur SET grade = ? WHERE nom = ? AND prenom = ?", ("Chef d'équipe",nom_chef, prenom_chef))
+                cursor.execute("UPDATE chercheur SET Equipe_idEquipe = ? WHERE nom = ? AND prenom = ?", (id_eq,nom_chef, prenom_chef))
+                connection.commit()
             
             print("✅ Équipe créée avec succès.")
             self.nettoyer_formulaire()
