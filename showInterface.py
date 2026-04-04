@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
                         "prenom": result['prenom'],
                         "role": result['type_role'],
                         "grade": result['grade'],
-                        "id_equipe": result['Equipe_idEquipe'] # NOUVEAU
+                        "id_equipe": result['Equipe_idEquipe']
                     }
                     
                     print(f"✅ Connexion réussie ! Bienvenue {self.utilisateur_connecte['prenom']}.")
@@ -179,9 +179,8 @@ class MainWindow(QMainWindow):
         peut_gerer_membres = est_admin or est_chef
         self.widget_equipes_btn_ajouter_chercheur.setVisible(peut_gerer_membres)
 
-        # /!\ DÉCOMMETTRE ET CHANGER LE NOM DU BOUTON ICI POUR LES PUBLICATIONS :
-        # if hasattr(self, 'nom_du_bouton_creer_publication'):
-        #     self.nom_du_bouton_creer_publication.setVisible(peut_gerer_publications)
+        # Boutons de publications
+        self.widget_publication_btn_creer.setVisible(peut_gerer_publications)
 
 
     # ==========================================
@@ -246,6 +245,11 @@ class MainWindow(QMainWindow):
         try:
             cursor = connection.cursor()
             self.widget_personnel_listWidget_personnel.clear()
+            
+            # --- NOUVEAU : En-tête de la liste ---
+            self.widget_personnel_listWidget_personnel.addItem("📌 NOM | PRÉNOM | GRADE | ID ÉQUIPE")
+            self.widget_personnel_listWidget_personnel.addItem("-" * 60)
+            
             sql = """SELECT * FROM chercheur"""
             cursor.execute(sql)
             data = cursor.fetchall()
@@ -271,6 +275,11 @@ class MainWindow(QMainWindow):
         item_selectionne = self.widget_personnel_listWidget_personnel.currentItem()
         if item_selectionne is None:
             print("⚠️ Veuillez sélectionner un chercheur.")
+            return
+            
+        # --- NOUVELLE SÉCURITÉ ---
+        if "📌" in item_selectionne.text() or "---" in item_selectionne.text():
+            print("⚠️ Vous avez sélectionné l'en-tête. Veuillez choisir un chercheur valide.")
             return
 
         texte = item_selectionne.text().split(" | ")
@@ -330,6 +339,11 @@ class MainWindow(QMainWindow):
         try:
             cursor = connection.cursor()
             self.widget_equipes_listWidget_equipes.clear()
+            
+            # --- NOUVEAU : En-tête de la liste ---
+            self.widget_equipes_listWidget_equipes.addItem("📌 ID ÉQUIPE | NOM | ABRÉVIATION")
+            self.widget_equipes_listWidget_equipes.addItem("-" * 60)
+            
             sql = """SELECT * FROM equipe"""
             cursor.execute(sql)
             data = cursor.fetchall()
@@ -351,6 +365,11 @@ class MainWindow(QMainWindow):
         item_selectionne = self.widget_equipes_listWidget_equipes.currentItem()
         if item_selectionne is None:
             print("⚠️ Veuillez sélectionner une équipe.")
+            return
+            
+        # --- NOUVELLE SÉCURITÉ ---
+        if "📌" in item_selectionne.text() or "---" in item_selectionne.text():
+            print("⚠️ Vous avez sélectionné l'en-tête. Veuillez choisir une équipe valide.")
             return
 
         texte = item_selectionne.text().split(" | ")
@@ -379,7 +398,7 @@ class MainWindow(QMainWindow):
 
         try:
             cursor = connection.cursor()
-            self.widget_personnel_listWidget_personnel.clear()
+            self.widget_publication_listWidget_publications.clear()
             sql = """SELECT * FROM publication"""
             cursor.execute(sql)
             data = cursor.fetchall()
@@ -415,6 +434,13 @@ class MainWindow(QMainWindow):
 
             self.widget_ajouter_chercheur_listWidget_equipe.clear()
             self.widget_ajouter_chercheur_listWidget_chercheur.clear()
+            
+            # --- NOUVEAU : En-têtes ---
+            self.widget_ajouter_chercheur_listWidget_equipe.addItem("📌 ID ÉQUIPE | NOM | ABRÉVIATION")
+            self.widget_ajouter_chercheur_listWidget_equipe.addItem("-" * 60)
+            
+            self.widget_ajouter_chercheur_listWidget_chercheur.addItem("📌 NOM | PRÉNOM | GRADE | ID ÉQUIPE")
+            self.widget_ajouter_chercheur_listWidget_chercheur.addItem("-" * 60)
 
             # 🛡️ Si c'est un Chef d'équipe, on ne montre que SON équipe
             if is_chef and not is_admin:
@@ -424,10 +450,8 @@ class MainWindow(QMainWindow):
                     cursor.execute(sql, (id_equipe_chef,))
                 else:
                     print("⚠️ Vous n'êtes rattaché à aucune équipe.")
-                    # Requête qui ne renvoie rien pour éviter de tout afficher
                     cursor.execute("SELECT * FROM equipe WHERE idEquipe = -1")
             else:
-                # Si c'est l'Admin, on montre tout
                 sql = """SELECT * FROM equipe"""
                 cursor.execute(sql)
                 
@@ -471,6 +495,11 @@ class MainWindow(QMainWindow):
             e = self.widget_ajouter_chercheur_listWidget_equipe.currentItem()
 
             if n != None and p != None and e != None:
+                # --- NOUVELLE SÉCURITÉ ---
+                if "📌" in n.text() or "---" in n.text() or "📌" in e.text() or "---" in e.text():
+                    print("⚠️ Vous avez sélectionné un en-tête au lieu d'un élément valide.")
+                    return
+                    
                 nom_select = n.text().split(" | ")[0]
                 prenom_select = p.text().split(" | ")[1]
                 equipe = e.text().split(" | ")[1]
