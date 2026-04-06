@@ -35,39 +35,49 @@ Ce projet permet de gérer efficacement le personnel (chercheurs, doctorants, st
 ### 🔐 Authentification & Sécurité
 - Connexion sécurisée via nom d'utilisateur et mot de passe.
 - Hachage cryptographique des mots de passe avec **bcrypt**.
-- Gestion de session utilisateur (système de "cookie" local en mémoire).
-- Interface dynamique : les actions d'administration sont masquées pour les utilisateurs non connectés ou ne disposant pas des droits suffisants.
+- Gestion de session utilisateur via un contrôleur dédié (`AuthController`).
+- Interface dynamique : les actions d'administration sont masquées pour les utilisateurs non connectés ou selon leur rôle (Administrateur, Chef d'équipe).
 
-### 👥 Gestion du Personnel
+### 👥 Gestion du Personnel (`ChercheursController`)
 - Affichage de la liste détaillée des chercheurs.
-- Création d'un chercheur avec ses informations personnelles, son grade et son rôle.
-- (En cours) Suppression ou modification du profil d'un chercheur.
+- Création d'un chercheur (Grade, équipe, Rôle).
+- Opération d'ajout d'un membre à une équipe (réservé aux Chefs d'équipe/Administrateurs).
+- Suppression ou modification de profils existants (sécurisé contre la suppression du Super-Admin).
 
-### 🏢 Gestion des Équipes
-- Consultation de la liste des équipes de recherche.
-- Ajout d'une nouvelle équipe (Nom, Abréviation, Axe de recherche).
-- Système anti-doublon vérifiant le nom et l'abréviation avant l'insertion en base.
-- Visualisation des membres affectés à chaque équipe.
+### 🏢 Gestion des Équipes (`EquipesController`)
+- Consultation de la liste des équipes de recherche et de leurs membres.
+- Ajout d'une nouvelle équipe (Nom, Abréviation, Axe de recherche) avec système anti-doublon.
+- Assignation directe de rôles de Chef d'équipe lors de la création d'une équipe.
+- Suppression propre des équipes avec mise à jour des liaisons (`NULL`) pour les chercheurs associés.
 
-### 📚 Publications
-- (En cours) Création et consultation des publications liées aux chercheurs et aux équipes.
+### 📚 Publications (`PublicationsController`)
+- Création et consultation des publications.
+- Gestion des droits d'écriture/affichage restreinte par rôle.
 
 ---
 
-## 🏗 Architecture du Projet
+## 🏗 Architecture du Projet (Modèle MVC)
 
-Le projet suit une structure simple et modulaire :
+Le projet a été refactorisé pour suivre une structure modulaire inspirée du modèle MVC (Modèle-Vue-Contrôleur) afin de séparer la logique métier de l'interface graphique.
 
 ```text
 📁 Project_POO_SNR_JPJN
 │
-├── showInterface.py    # Point d'entrée principal de l'application
-├── Interface.ui        # Fichier design de l'interface (Qt Designer)
-├── Interface_ui.py     # Code généré de l'interface graphique
-├── connexion_bdd.py    # Logique de connexion à la base SQLite
-├── insertion_sql.py    # Script d'initialisation/insertion des données SQL
-├── UML.mwb             # Modèle de données conceptuel (MySQL Workbench)
-└── README.md           # Documentation du projet
+├── showInterface.py              # Point d'entrée principal (Vue globale)
+├── Interface.ui                  # Fichier design de l'interface (Qt Designer)
+├── Interface_ui.py               # Code généré de l'interface graphique
+├── connexion_bdd.py              # Connexion à la base de données (Modèle)
+├── insertion_sql.py              # Script d'initialisation SQL
+├── UML.mwb                       # Modèle de données conceptuel
+│
+├── 📁 controllers/               # Dossier contenant la logique métier (Contrôleurs)
+│   ├── __init__.py
+│   ├── auth_controller.py        # Gestion de l'authentification et des droits
+│   ├── chercheurs_controller.py  # CRUD et gestion du personnel
+│   ├── equipes_controller.py     # CRUD et gestion des équipes de recherche
+│   └── publications_controller.py# CRUD et affichage des publications
+│
+└── README.md                     # Documentation du projet
 ```
 
 ---
