@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.btn_personnel.clicked.connect(self.afficher_personnel)
         
         self.widget_equipes_btn_creer_equipe.clicked.connect(self.afficher_creer_equipe)
-        self.widget_equipes_btn_ajouter_chercheur.clicked.connect(self.afficher_ajouter_chercheur)
+        self.widget_membre_equipe_btn_ajouter_membre.clicked.connect(self.afficher_ajouter_chercheur)
         self.widget_equipes_btn_supprimer_chercheur.clicked.connect(self.afficher_supprimer_chercheur_equipe)
         
         self.widget_personnel_btn_creer_chercheur.clicked.connect(self.afficher_creer_chercheur)
@@ -36,11 +36,13 @@ class MainWindow(QMainWindow):
         
         self.widget_creer_chercheur_btn_creer.clicked.connect(self.creer_chercheur)
         self.widget_creer_equipes_btn_creer_equipe.clicked.connect(self.creer_equipe)
+        self.widget_memebres_equipe_btn_retour.clicked.connect(self.afficher_equipe)
 
         self.widget_publication_btn_creer.clicked.connect(self.afficher_creer_publication)
         self.widget_creer_publication_btn_creer.clicked.connect(self.creer_publication)
         self.widget_afficher_publication_btn_retour.clicked.connect(self.afficher_publications)
         self.widget_publication_btn_afficher.clicked.connect(self.afficher_publication)
+        self.widget_equipes_btn_membres.clicked.connect(self.afficher_membres)
         
         self.btn_connection.clicked.connect(self.afficher_connection)
         self.widget_connection_btn_connection.clicked.connect(self.verification_connection)
@@ -177,7 +179,7 @@ class MainWindow(QMainWindow):
 
         # Le Chef d'équipe ET l'Admin peuvent gérer les membres des équipes
         peut_gerer_membres = est_admin or est_chef
-        self.widget_equipes_btn_ajouter_chercheur.setVisible(peut_gerer_membres)
+        self.widget_equipes_btn_membres.setVisible(peut_gerer_membres)
 
         # Boutons de publications
         self.widget_publication_btn_creer.setVisible(peut_gerer_publications)
@@ -186,6 +188,34 @@ class MainWindow(QMainWindow):
     # ==========================================
     # MÉTHODES D'AFFICHAGE ET SUPPRESSION
     # ==========================================
+    def afficher_membres(self):
+        connection = connecter_bdd()
+        if connection is None:
+            return 
+
+        try:
+            cursor = connection.cursor()
+            self.widget_membres_equipe_listWidget_membres.clear()
+            eq = self.widget_equipes_listWidget_equipes.currentItem().text().split(" | ")[1]
+            sql = """SELECT * FROM equipe WHERE nom_eq = ?"""
+            cursor.execute(sql,(eq,))
+            data = dict(cursor.fetchone())
+
+            sql = """SELECT * FROM chercheur WHERE equipe_idEquipe = ?"""
+            cursor.execute(sql,(data["idEquipe"],))
+            data = cursor.fetchall()
+            for i in data:
+                d = dict(i)
+                self.widget_membres_equipe_listWidget_membres.addItem(d['nom']+" | "+d['prenom'])
+
+        except sqlite3.Error as e:
+            print(f"❌ Erreur SQLite : {e}")
+
+        finally:
+            if connection:
+                connection.close()
+            self.stackedWidget.setCurrentWidget(self.widget_membres_equipe)
+
     def afficher_publication(self):
         connection = connecter_bdd()
         if connection is None:
@@ -432,45 +462,20 @@ class MainWindow(QMainWindow):
         try:
             cursor = connection.cursor()
 
-            self.widget_ajouter_chercheur_listWidget_equipe.clear()
             self.widget_ajouter_chercheur_listWidget_chercheur.clear()
-            
-            # --- NOUVEAU : En-têtes ---
-            self.widget_ajouter_chercheur_listWidget_equipe.addItem("📌 ID ÉQUIPE | NOM | ABRÉVIATION")
-            self.widget_ajouter_chercheur_listWidget_equipe.addItem("-" * 60)
             
             self.widget_ajouter_chercheur_listWidget_chercheur.addItem("📌 NOM | PRÉNOM | GRADE | ID ÉQUIPE")
             self.widget_ajouter_chercheur_listWidget_chercheur.addItem("-" * 60)
-
-            # 🛡️ Si c'est un Chef d'équipe, on ne montre que SON équipe
-            if is_chef and not is_admin:
-                id_equipe_chef = self.utilisateur_connecte.get('id_equipe')
-                if id_equipe_chef is not None:
-                    sql = """SELECT * FROM equipe WHERE idEquipe = ?"""
-                    cursor.execute(sql, (id_equipe_chef,))
-                else:
-                    print("⚠️ Vous n'êtes rattaché à aucune équipe.")
-                    cursor.execute("SELECT * FROM equipe WHERE idEquipe = -1")
-            else:
-                sql = """SELECT * FROM equipe"""
-                cursor.execute(sql)
-                
-            data = cursor.fetchall()
-            for i in range(len(data)):
-                d = dict(data[i])
-                self.widget_ajouter_chercheur_listWidget_equipe.addItem(str(d['idEquipe'])+" | "+str(d['nom_eq'])+" | "+ str(d['abreviation_eq']))
             
             # Liste de tous les chercheurs
-            sql = """SELECT * FROM chercheur"""
-            cursor.execute(sql)
+            id_eq = self.widget_equipes_listWidget_equipes.currentItem().text().split(" | ")[0]
+            sql = """SELECT * FROM chercheur WHERE Equipe_idEquipe != ?"""
+            cursor.execute(sql,(id_eq,))
             data = cursor.fetchall()
             for i in range(len(data)):
                 d = dict(data[i])
-                if d['nom'] != "Système":
-                    if d['Equipe_idEquipe'] != None:
-                        self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" | "+ str(d['Equipe_idEquipe']))
-                    else:
-                        self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |      ")
+                if d['nom'] != "Système" and d['grade'] != "Chef d'équipe":
+                    self.widget_ajouter_chercheur_listWidget_chercheur.addItem(str(d['nom'])+" | "+ str(d['prenom'])+" | "+ str(d['grade'])+" |      ")
 
         except sqlite3.Error as e:
             print(f"❌ Erreur SQLite : {e}")
@@ -492,9 +497,9 @@ class MainWindow(QMainWindow):
             cursor = connection.cursor()
             n = self.widget_ajouter_chercheur_listWidget_chercheur.currentItem()
             p = self.widget_ajouter_chercheur_listWidget_chercheur.currentItem()
-            e = self.widget_ajouter_chercheur_listWidget_equipe.currentItem()
+            e = self.widget_equipes_listWidget_equipes.currentItem()
 
-            if n != None and p != None and e != None:
+            if n != None and p != None:
                 # --- NOUVELLE SÉCURITÉ ---
                 if "📌" in n.text() or "---" in n.text() or "📌" in e.text() or "---" in e.text():
                     print("⚠️ Vous avez sélectionné un en-tête au lieu d'un élément valide.")
@@ -517,8 +522,8 @@ class MainWindow(QMainWindow):
                         print("⛔ Accès refusé : Vous ne pouvez ajouter des membres qu'à votre propre équipe.")
                         return
 
-                sql = """UPDATE chercheur SET Equipe_idEquipe = ?  WHERE prenom = ? AND nom = ?"""
-                cursor.execute(sql,(equ,nom_select,prenom_select))
+                sql = """UPDATE chercheur SET Equipe_idEquipe = ? WHERE prenom = ? AND nom = ?"""
+                cursor.execute(sql,(equ,prenom_select,nom_select))
                 connection.commit()
                 print("✅ Chercheur affecté à l'équipe avec succès.")
 
